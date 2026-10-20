@@ -109,6 +109,7 @@
                     <li>Бюджет клиента обычно <b>ниже</b> рыночной стоимости деталей. Прибыль — из скидок на Авито, торга и AliExpress.</li>
                     <li>При принятии заказа клиент даёт <b>предоплату 30%</b>. Остаток — при сдаче ПК.</li>
                     <li>На этапе знакомства можно: принять, <b>торговаться</b> (клиент может доплатить +10–25%), сказать о задержке или отказать.</li>
+                    <li><b>Провал заказа</b> (клиент не дождался) снимает репутацию: −5 за принятый в работу заказ, −3 за отказ на этапе обсуждения.</li>
                 </ul>
             </div>
             <div class="rules-section">
@@ -251,14 +252,26 @@
         { name: 'Москва', deliveryMul: 0.7, avitoCount: 14, moveCost: 180000, moveRep: 100 }
     ];
 
+    // ==== КОМПЛЕКТУЮЩИЕ (расширенный пул) ====
     const COMPONENT_POOL = {
         cpu: [
+            // Intel LGA 1151 (6-7 поколение)
+            { name: 'Intel Core i3-6100', basePrice: 1800, brand: 'intel', family: 'Intel Core i3', gen: '6-7 поколение', tier: 1 },
+            { name: 'Intel Core i5-6400', basePrice: 3000, brand: 'intel', family: 'Intel Core i5', gen: '6-7 поколение', tier: 2 },
+            { name: 'Intel Core i5-6500', basePrice: 3500, brand: 'intel', family: 'Intel Core i5', gen: '6-7 поколение', tier: 2 },
+            { name: 'Intel Core i5-6600K', basePrice: 4200, brand: 'intel', family: 'Intel Core i5', gen: '6-7 поколение', tier: 2 },
+            { name: 'Intel Core i7-6700', basePrice: 6500, brand: 'intel', family: 'Intel Core i7', gen: '6-7 поколение', tier: 3 },
+            { name: 'Intel Core i7-6700K', basePrice: 8000, brand: 'intel', family: 'Intel Core i7', gen: '6-7 поколение', tier: 3 },
+            { name: 'Intel Core i7-7700', basePrice: 8500, brand: 'intel', family: 'Intel Core i7', gen: '6-7 поколение', tier: 3 },
+            { name: 'Intel Core i7-7700K', basePrice: 10000, brand: 'intel', family: 'Intel Core i7', gen: '6-7 поколение', tier: 3 },
+            // Intel LGA 1151 v2 (8-9 поколение)
             { name: 'Intel Core i3-8100', basePrice: 3000, brand: 'intel', family: 'Intel Core i3', gen: '8-9 поколение', tier: 1 },
             { name: 'Intel Core i5-8400', basePrice: 5500, brand: 'intel', family: 'Intel Core i5', gen: '8-9 поколение', tier: 2 },
             { name: 'Intel Core i7-8700', basePrice: 9000, brand: 'intel', family: 'Intel Core i7', gen: '8-9 поколение', tier: 3 },
             { name: 'Intel Core i5-9400F', basePrice: 6000, brand: 'intel', family: 'Intel Core i5', gen: '8-9 поколение', tier: 2 },
             { name: 'Intel Core i7-9700K', basePrice: 11000, brand: 'intel', family: 'Intel Core i7', gen: '8-9 поколение', tier: 3 },
             { name: 'Intel Core i9-9900K', basePrice: 16000, brand: 'intel', family: 'Intel Core i9', gen: '8-9 поколение', tier: 4 },
+            // Intel LGA 1200 (10-11 поколение)
             { name: 'Intel Core i3-10100F', basePrice: 4500, brand: 'intel', family: 'Intel Core i3', gen: '10 поколение', tier: 1 },
             { name: 'Intel Core i5-10400F', basePrice: 7000, brand: 'intel', family: 'Intel Core i5', gen: '10 поколение', tier: 2 },
             { name: 'Intel Core i5-10600KF', basePrice: 9000, brand: 'intel', family: 'Intel Core i5', gen: '10 поколение', tier: 2 },
@@ -267,6 +280,7 @@
             { name: 'Intel Core i5-11400F', basePrice: 9500, brand: 'intel', family: 'Intel Core i5', gen: '11 поколение', tier: 2 },
             { name: 'Intel Core i7-11700F', basePrice: 15000, brand: 'intel', family: 'Intel Core i7', gen: '11 поколение', tier: 3 },
             { name: 'Intel Core i9-11900F', basePrice: 21000, brand: 'intel', family: 'Intel Core i9', gen: '11 поколение', tier: 4 },
+            // Intel LGA 1700 (12-14 поколение)
             { name: 'Intel Core i3-12100F', basePrice: 7500, brand: 'intel', family: 'Intel Core i3', gen: '12 поколение', tier: 1 },
             { name: 'Intel Core i5-12400F', basePrice: 11000, brand: 'intel', family: 'Intel Core i5', gen: '12 поколение', tier: 2 },
             { name: 'Intel Core i5-12600KF', basePrice: 14500, brand: 'intel', family: 'Intel Core i5', gen: '12 поколение', tier: 2 },
@@ -279,6 +293,7 @@
             { name: 'Intel Core i5-14400F', basePrice: 16000, brand: 'intel', family: 'Intel Core i5', gen: '14 поколение', tier: 2 },
             { name: 'Intel Core i7-14700F', basePrice: 28000, brand: 'intel', family: 'Intel Core i7', gen: '14 поколение', tier: 3 },
             { name: 'Intel Core i9-14900K', basePrice: 48000, brand: 'intel', family: 'Intel Core i9', gen: '14 поколение', tier: 4 },
+            // AMD AM4 (1000-5000)
             { name: 'AMD Ryzen 3 1200', basePrice: 2500, brand: 'amd', family: 'AMD Ryzen 3', gen: '1000 серия', tier: 1 },
             { name: 'AMD Ryzen 5 1600', basePrice: 4500, brand: 'amd', family: 'AMD Ryzen 5', gen: '1000 серия', tier: 2 },
             { name: 'AMD Ryzen 5 2600', basePrice: 5500, brand: 'amd', family: 'AMD Ryzen 5', gen: '2000 серия', tier: 2 },
@@ -292,15 +307,33 @@
             { name: 'AMD Ryzen 7 5700X', basePrice: 16000, brand: 'amd', family: 'AMD Ryzen 7', gen: '5000 серия', tier: 3 },
             { name: 'AMD Ryzen 7 5800X3D', basePrice: 24000, brand: 'amd', family: 'AMD Ryzen 7', gen: '5000 серия', tier: 3 },
             { name: 'AMD Ryzen 9 5900X', basePrice: 32000, brand: 'amd', family: 'AMD Ryzen 9', gen: '5000 серия', tier: 4 },
+            // AMD AM5 (7000-9000)
             { name: 'AMD Ryzen 5 7600', basePrice: 17000, brand: 'amd', family: 'AMD Ryzen 5', gen: '7000 серия', tier: 2 },
             { name: 'AMD Ryzen 7 7700X', basePrice: 26000, brand: 'amd', family: 'AMD Ryzen 7', gen: '7000 серия', tier: 3 },
             { name: 'AMD Ryzen 7 7800X3D', basePrice: 34000, brand: 'amd', family: 'AMD Ryzen 7', gen: '7000 серия', tier: 3 },
             { name: 'AMD Ryzen 9 7900X', basePrice: 45000, brand: 'amd', family: 'AMD Ryzen 9', gen: '7000 серия', tier: 4 },
             { name: 'AMD Ryzen 5 9600X', basePrice: 22000, brand: 'amd', family: 'AMD Ryzen 5', gen: '9000 серия', tier: 2 },
             { name: 'AMD Ryzen 7 9700X', basePrice: 32000, brand: 'amd', family: 'AMD Ryzen 7', gen: '9000 серия', tier: 3 },
-            { name: 'AMD Ryzen 9 9950X', basePrice: 65000, brand: 'amd', family: 'AMD Ryzen 9', gen: '9000 серия', tier: 4 }
+            { name: 'AMD Ryzen 9 9950X', basePrice: 65000, brand: 'amd', family: 'AMD Ryzen 9', gen: '9000 серия', tier: 4 },
+            // AMD FX / APU (старьё, для дешёвых сборок)
+            { name: 'AMD FX-6300', basePrice: 1200, brand: 'amd', family: 'AMD FX', gen: 'FX серия', tier: 1 },
+            { name: 'AMD FX-8350', basePrice: 2000, brand: 'amd', family: 'AMD FX', gen: 'FX серия', tier: 1 },
+            { name: 'AMD A10-7850K', basePrice: 1500, brand: 'amd', family: 'AMD A-Series', gen: 'A серия', tier: 1 },
+            { name: 'AMD A8-7600', basePrice: 1000, brand: 'amd', family: 'AMD A-Series', gen: 'A серия', tier: 1 }
         ],
         gpu: [
+            // NVIDIA GTX 700/900
+            { name: 'GTX 750 Ti', basePrice: 2500, brand: 'nvidia', family: 'GTX 750', gen: 'GTX 700', tier: 1 },
+            { name: 'GTX 760', basePrice: 3000, brand: 'nvidia', family: 'GTX 760', gen: 'GTX 700', tier: 1 },
+            { name: 'GTX 770', basePrice: 3500, brand: 'nvidia', family: 'GTX 770', gen: 'GTX 700', tier: 1 },
+            { name: 'GTX 780', basePrice: 4500, brand: 'nvidia', family: 'GTX 780', gen: 'GTX 700', tier: 2 },
+            { name: 'GTX 780 Ti', basePrice: 5500, brand: 'nvidia', family: 'GTX 780', gen: 'GTX 700', tier: 2 },
+            { name: 'GTX 950', basePrice: 3500, brand: 'nvidia', family: 'GTX 950', gen: 'GTX 900', tier: 1 },
+            { name: 'GTX 960', basePrice: 4500, brand: 'nvidia', family: 'GTX 960', gen: 'GTX 900', tier: 2 },
+            { name: 'GTX 970', basePrice: 6500, brand: 'nvidia', family: 'GTX 970', gen: 'GTX 900', tier: 2 },
+            { name: 'GTX 980', basePrice: 9000, brand: 'nvidia', family: 'GTX 980', gen: 'GTX 900', tier: 3 },
+            { name: 'GTX 980 Ti', basePrice: 11000, brand: 'nvidia', family: 'GTX 980', gen: 'GTX 900', tier: 3 },
+            // NVIDIA GTX 10
             { name: 'GTX 1050', basePrice: 3500, brand: 'nvidia', family: 'GTX 1050', gen: 'GTX 10', tier: 1 },
             { name: 'GTX 1050 Ti', basePrice: 5000, brand: 'nvidia', family: 'GTX 1050', gen: 'GTX 10', tier: 1 },
             { name: 'GTX 1060 3GB', basePrice: 6500, brand: 'nvidia', family: 'GTX 1060', gen: 'GTX 10', tier: 2 },
@@ -309,18 +342,21 @@
             { name: 'GTX 1070 Ti', basePrice: 13500, brand: 'nvidia', family: 'GTX 1070', gen: 'GTX 10', tier: 3 },
             { name: 'GTX 1080', basePrice: 15000, brand: 'nvidia', family: 'GTX 1080', gen: 'GTX 10', tier: 4 },
             { name: 'GTX 1080 Ti', basePrice: 17000, brand: 'nvidia', family: 'GTX 1080', gen: 'GTX 10', tier: 4 },
+            // NVIDIA GTX 16 / RTX 20
             { name: 'GTX 1650', basePrice: 9000, brand: 'nvidia', family: 'GTX 1650', gen: 'GTX 16', tier: 2 },
             { name: 'GTX 1650 Super', basePrice: 11000, brand: 'nvidia', family: 'GTX 1650', gen: 'GTX 16', tier: 2 },
             { name: 'GTX 1660', basePrice: 12000, brand: 'nvidia', family: 'GTX 1660', gen: 'GTX 16', tier: 2 },
             { name: 'GTX 1660 Super', basePrice: 13000, brand: 'nvidia', family: 'GTX 1660', gen: 'GTX 16', tier: 2 },
             { name: 'GTX 1660 Ti', basePrice: 14000, brand: 'nvidia', family: 'GTX 1660', gen: 'GTX 16', tier: 3 },
             { name: 'RTX 2060', basePrice: 14000, brand: 'nvidia', family: 'RTX 2060', gen: 'RTX 20', tier: 2 },
+            { name: 'RTX 2060 12GB', basePrice: 16000, brand: 'nvidia', family: 'RTX 2060', gen: 'RTX 20', tier: 3 },
             { name: 'RTX 2060 Super', basePrice: 17000, brand: 'nvidia', family: 'RTX 2060', gen: 'RTX 20', tier: 3 },
             { name: 'RTX 2070', basePrice: 19000, brand: 'nvidia', family: 'RTX 2070', gen: 'RTX 20', tier: 3 },
             { name: 'RTX 2070 Super', basePrice: 22000, brand: 'nvidia', family: 'RTX 2070', gen: 'RTX 20', tier: 3 },
             { name: 'RTX 2080', basePrice: 26000, brand: 'nvidia', family: 'RTX 2080', gen: 'RTX 20', tier: 4 },
             { name: 'RTX 2080 Super', basePrice: 30000, brand: 'nvidia', family: 'RTX 2080', gen: 'RTX 20', tier: 4 },
             { name: 'RTX 2080 Ti', basePrice: 35000, brand: 'nvidia', family: 'RTX 2080', gen: 'RTX 20', tier: 5 },
+            // NVIDIA RTX 30
             { name: 'RTX 3050', basePrice: 17000, brand: 'nvidia', family: 'RTX 3050', gen: 'RTX 30', tier: 2 },
             { name: 'RTX 3060 8GB', basePrice: 21000, brand: 'nvidia', family: 'RTX 3060', gen: 'RTX 30', tier: 3 },
             { name: 'RTX 3060 12GB', basePrice: 25000, brand: 'nvidia', family: 'RTX 3060', gen: 'RTX 30', tier: 3 },
@@ -330,6 +366,7 @@
             { name: 'RTX 3080', basePrice: 46000, brand: 'nvidia', family: 'RTX 3080', gen: 'RTX 30', tier: 5 },
             { name: 'RTX 3080 Ti', basePrice: 55000, brand: 'nvidia', family: 'RTX 3080', gen: 'RTX 30', tier: 5 },
             { name: 'RTX 3090', basePrice: 60000, brand: 'nvidia', family: 'RTX 3090', gen: 'RTX 30', tier: 6 },
+            // NVIDIA RTX 40
             { name: 'RTX 4060', basePrice: 28000, brand: 'nvidia', family: 'RTX 4060', gen: 'RTX 40', tier: 3 },
             { name: 'RTX 4060 Ti', basePrice: 38000, brand: 'nvidia', family: 'RTX 4060', gen: 'RTX 40', tier: 4 },
             { name: 'RTX 4070', basePrice: 48000, brand: 'nvidia', family: 'RTX 4070', gen: 'RTX 40', tier: 4 },
@@ -338,12 +375,23 @@
             { name: 'RTX 4080', basePrice: 70000, brand: 'nvidia', family: 'RTX 4080', gen: 'RTX 40', tier: 6 },
             { name: 'RTX 4080 Super', basePrice: 85000, brand: 'nvidia', family: 'RTX 4080', gen: 'RTX 40', tier: 6 },
             { name: 'RTX 4090', basePrice: 110000, brand: 'nvidia', family: 'RTX 4090', gen: 'RTX 40', tier: 7 },
+            // NVIDIA RTX 50
             { name: 'RTX 5060', basePrice: 40000, brand: 'nvidia', family: 'RTX 5060', gen: 'RTX 50', tier: 3 },
             { name: 'RTX 5060 Ti', basePrice: 48000, brand: 'nvidia', family: 'RTX 5060', gen: 'RTX 50', tier: 4 },
             { name: 'RTX 5070', basePrice: 55000, brand: 'nvidia', family: 'RTX 5070', gen: 'RTX 50', tier: 4 },
             { name: 'RTX 5070 Ti', basePrice: 68000, brand: 'nvidia', family: 'RTX 5070', gen: 'RTX 50', tier: 5 },
             { name: 'RTX 5080', basePrice: 80000, brand: 'nvidia', family: 'RTX 5080', gen: 'RTX 50', tier: 6 },
             { name: 'RTX 5090', basePrice: 140000, brand: 'nvidia', family: 'RTX 5090', gen: 'RTX 50', tier: 7 },
+            // AMD RX 400/500 (Полярис)
+            { name: 'Radeon RX 460', basePrice: 2500, brand: 'amd', family: 'RX 460', gen: 'RX 400', tier: 1 },
+            { name: 'Radeon RX 470', basePrice: 3500, brand: 'amd', family: 'RX 470', gen: 'RX 400', tier: 2 },
+            { name: 'Radeon RX 480', basePrice: 4500, brand: 'amd', family: 'RX 480', gen: 'RX 400', tier: 2 },
+            { name: 'Radeon RX 550', basePrice: 3000, brand: 'amd', family: 'RX 550', gen: 'RX 500', tier: 1 },
+            { name: 'Radeon RX 560', basePrice: 3500, brand: 'amd', family: 'RX 560', gen: 'RX 500', tier: 1 },
+            { name: 'Radeon RX 570', basePrice: 4500, brand: 'amd', family: 'RX 570', gen: 'RX 500', tier: 2 },
+            { name: 'Radeon RX 580 8GB', basePrice: 6000, brand: 'amd', family: 'RX 580', gen: 'RX 500', tier: 2 },
+            { name: 'Radeon RX 590', basePrice: 7500, brand: 'amd', family: 'RX 590', gen: 'RX 500', tier: 2 },
+            // AMD RX 5000/6000
             { name: 'Radeon RX 5500 XT', basePrice: 9000, brand: 'amd', family: 'RX 5500', gen: 'RX 5000', tier: 1 },
             { name: 'Radeon RX 5600 XT', basePrice: 12000, brand: 'amd', family: 'RX 5600', gen: 'RX 5000', tier: 2 },
             { name: 'Radeon RX 5700', basePrice: 14000, brand: 'amd', family: 'RX 5700', gen: 'RX 5000', tier: 3 },
@@ -358,6 +406,7 @@
             { name: 'Radeon RX 6800', basePrice: 38000, brand: 'amd', family: 'RX 6800', gen: 'RX 6000', tier: 4 },
             { name: 'Radeon RX 6800 XT', basePrice: 42000, brand: 'amd', family: 'RX 6800', gen: 'RX 6000', tier: 5 },
             { name: 'Radeon RX 6900 XT', basePrice: 52000, brand: 'amd', family: 'RX 6900', gen: 'RX 6000', tier: 6 },
+            // AMD RX 7000/9000
             { name: 'Radeon RX 7600', basePrice: 26000, brand: 'amd', family: 'RX 7600', gen: 'RX 7000', tier: 2 },
             { name: 'Radeon RX 7600 XT', basePrice: 30000, brand: 'amd', family: 'RX 7600', gen: 'RX 7000', tier: 2 },
             { name: 'Radeon RX 7700 XT', basePrice: 38000, brand: 'amd', family: 'RX 7700', gen: 'RX 7000', tier: 3 },
@@ -368,11 +417,20 @@
             { name: 'Radeon RX 9070 XT', basePrice: 65000, brand: 'amd', family: 'RX 9070', gen: 'RX 9000', tier: 6 }
         ],
         ram: [
+            { name: 'DDR2 2GB 800MHz', basePrice: 300, brand: 'ddr2', family: 'DDR2', size: 2, freq: 800, tier: 1 },
+            { name: 'DDR2 4GB 800MHz', basePrice: 500, brand: 'ddr2', family: 'DDR2', size: 4, freq: 800, tier: 1 },
+            { name: 'DDR3 4GB 1333MHz', basePrice: 500, brand: 'ddr3', family: 'DDR3', size: 4, freq: 1333, tier: 1 },
             { name: 'DDR3 8GB 1600MHz', basePrice: 800, brand: 'ddr3', family: 'DDR3', size: 8, freq: 1600, tier: 1 },
             { name: 'DDR3 16GB 1600MHz', basePrice: 1500, brand: 'ddr3', family: 'DDR3', size: 16, freq: 1600, tier: 2 },
+            { name: 'DDR3 8GB 1866MHz', basePrice: 1000, brand: 'ddr3', family: 'DDR3', size: 8, freq: 1866, tier: 2 },
             { name: 'DDR4 4GB 2400MHz', basePrice: 800, brand: 'ddr4', family: 'DDR4', size: 4, freq: 2400, tier: 1 },
+            { name: 'DDR4 8GB 2400MHz', basePrice: 1200, brand: 'ddr4', family: 'DDR4', size: 8, freq: 2400, tier: 1 },
             { name: 'DDR4 8GB 2666MHz', basePrice: 1500, brand: 'ddr4', family: 'DDR4', size: 8, freq: 2666, tier: 2 },
+            { name: 'DDR4 8GB 3200MHz', basePrice: 1800, brand: 'ddr4', family: 'DDR4', size: 8, freq: 3200, tier: 2 },
+            { name: 'DDR4 16GB 2400MHz', basePrice: 2500, brand: 'ddr4', family: 'DDR4', size: 16, freq: 2400, tier: 2 },
+            { name: 'DDR4 16GB 2666MHz', basePrice: 2800, brand: 'ddr4', family: 'DDR4', size: 16, freq: 2666, tier: 2 },
             { name: 'DDR4 16GB 3200MHz', basePrice: 3200, brand: 'ddr4', family: 'DDR4', size: 16, freq: 3200, tier: 3 },
+            { name: 'DDR4 32GB 3200MHz', basePrice: 6000, brand: 'ddr4', family: 'DDR4', size: 32, freq: 3200, tier: 3 },
             { name: 'DDR4 32GB 3600MHz', basePrice: 6500, brand: 'ddr4', family: 'DDR4', size: 32, freq: 3600, tier: 4 },
             { name: 'DDR4 64GB 3600MHz', basePrice: 12500, brand: 'ddr4', family: 'DDR4', size: 64, freq: 3600, tier: 5 },
             { name: 'DDR5 8GB 4800MHz', basePrice: 3000, brand: 'ddr5', family: 'DDR5', size: 8, freq: 4800, tier: 2 },
@@ -554,7 +612,6 @@
 
     // === Санитизация загруженного состояния: не допускаем отрицательных дней ===
     function sanitizeLoadedState() {
-        // Доставки: минимум 1 день, если не приехали
         if (Array.isArray(state.deliveries)) {
             state.deliveries.forEach(d => {
                 if (typeof d.daysLeft !== 'number' || isNaN(d.daysLeft) || d.daysLeft < 1) {
@@ -562,7 +619,6 @@
                 }
             });
         }
-        // Диалоги: отрицательные дни чиним, просроченные активные заказы закрываем
         if (Array.isArray(state.dialogs)) {
             state.dialogs.forEach(d => {
                 if (typeof d.daysLeft !== 'number' || isNaN(d.daysLeft)) d.daysLeft = 0;
@@ -575,7 +631,6 @@
                 }
             });
         }
-        // На всякий случай: гарантируем массивы
         state.warehouse = Array.isArray(state.warehouse) ? state.warehouse : [];
         state.builtPCs = Array.isArray(state.builtPCs) ? state.builtPCs : [];
         state.marketOffers = Array.isArray(state.marketOffers) ? state.marketOffers : [];
@@ -679,7 +734,7 @@
         dayTimer = setTimeout(() => { advanceDay(); startGameLoop(); }, delay);
     }
 
-    // === ИСПРАВЛЕННАЯ advanceDay ===
+    // === ИСПРАВЛЕННАЯ advanceDay (репутация за провал) ===
     function advanceDay() {
         state.day++;
         state.dayElapsedMs = 0;
@@ -707,16 +762,13 @@
 
                 if (dial.daysLeft === 0) {
                     if (dial.stage === 'waiting') {
-                        dial.stage = 'failed';
-                        dial.chatHistory.push({ side: 'buyer', text: 'Я устал ждать доставку ваших деталей. Отменяю заказ!' });
+                        failDialog(dial, 'Я устал ждать доставку ваших деталей. Отменяю заказ!', 5);
                     } else if (dial.stage === 'deal') {
-                        dial.stage = 'failed';
-                        dial.chatHistory.push({ side: 'buyer', text: 'Я передумал, нашёл другого мастера. Пока.' });
+                        failDialog(dial, 'Я передумал, нашёл другого мастера. Пока.', 3);
                     }
                 }
             }
 
-            // На всякий случай не позволяем отрицательным значениям утечь
             if (dial.daysLeft < 0) dial.daysLeft = 0;
         });
 
@@ -728,7 +780,16 @@
         saveGame('advanceDay');
     }
 
-    // === ИСПРАВЛЕННЫЙ skipDay ===
+    // === Провал заказа со снятием репутации ===
+    function failDialog(dial, reasonText, repPenalty) {
+        if (dial.stage === 'failed' || dial.stage === 'done') return;
+        dial.stage = 'failed';
+        dial.chatHistory.push({ side: 'buyer', text: reasonText });
+        state.reputation = Math.max(0, state.reputation - repPenalty);
+        dial.chatHistory.push({ side: 'player', text: `[Репутация −${repPenalty}] Заказ провален.` });
+        console.log('[FAIL] dialog', dial.id, 'rep penalty', repPenalty);
+    }
+
     function skipDay() {
         if (dayTimer) clearTimeout(dayTimer);
         state.dayElapsedMs = 0;
@@ -794,7 +855,7 @@
         if (state.currentType === 'all') subs = [{ id: 'all', label: 'Все' }];
         else if (state.currentType === 'cpu') subs = [{ id: 'all', label: 'Все' }, { id: 'intel', label: 'Intel' }, { id: 'amd', label: 'AMD' }];
         else if (state.currentType === 'gpu') subs = [{ id: 'all', label: 'Все' }, { id: 'nvidia', label: 'NVIDIA' }, { id: 'amd', label: 'AMD Radeon' }];
-        else if (state.currentType === 'ram') subs = [{ id: 'all', label: 'Все' }, { id: 'ddr3', label: 'DDR3' }, { id: 'ddr4', label: 'DDR4' }, { id: 'ddr5', label: 'DDR5' }];
+        else if (state.currentType === 'ram') subs = [{ id: 'all', label: 'Все' }, { id: 'ddr2', label: 'DDR2' }, { id: 'ddr3', label: 'DDR3' }, { id: 'ddr4', label: 'DDR4' }, { id: 'ddr5', label: 'DDR5' }];
         let found = subs.some(s => s.id === state.currentSub);
         if (!found) state.currentSub = 'all';
         subs.forEach(s => {
@@ -870,7 +931,6 @@
         }
         let { cpuWish, gpuWish, ramWish, minCost, budget, prepay } = built;
         let name = pickRandom(NAMES_POOL);
-        // Гарантируем минимум 3 дня терпения
         let patience = Math.max(3, 5 + Math.floor(Math.random() * 5));
         state.dialogs.push({
             id: state.idCounter++, type: 'order', name: name,
@@ -1098,9 +1158,7 @@
             dial.chatHistory.push({ side: 'buyer', text: 'Ладно, подожду еще немного, но не затягивайте.' });
             state.reputation = Math.max(0, state.reputation - 1);
         } else {
-            dial.stage = 'failed';
-            dial.chatHistory.push({ side: 'buyer', text: 'Нет, это слишком долго. Я отменяю заказ.' });
-            state.reputation = Math.max(0, state.reputation - 3);
+            failDialog(dial, 'Нет, это слишком долго. Я отменяю заказ.', 3);
         }
         updateUI(); saveGame('warnDelay');
     }
@@ -1275,6 +1333,7 @@
             if (o.brand === 'intel') brandBadge = '<span class="badge blue">Intel</span>';
             else if (o.brand === 'amd') brandBadge = '<span class="badge red">AMD</span>';
             else if (o.brand === 'nvidia') brandBadge = '<span class="badge green">NVIDIA</span>';
+            else if (o.brand === 'ddr2') brandBadge = '<span class="badge orange">DDR2</span>';
             else if (o.brand === 'ddr3') brandBadge = '<span class="badge orange">DDR3</span>';
             else if (o.brand === 'ddr4') brandBadge = '<span class="badge blue">DDR4</span>';
             else if (o.brand === 'ddr5') brandBadge = '<span class="badge purple">DDR5</span>';
