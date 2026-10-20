@@ -85,6 +85,10 @@
         .save-indicator { position: fixed; bottom: 70px; right: 20px; background: rgba(0,255,204,0.9); color: #0b0c10; padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: bold; opacity: 0; transition: opacity 0.3s; z-index: 999; pointer-events: none; }
         .save-indicator.show { opacity: 1; }
         .save-indicator.error { background: rgba(255,69,69,0.95); color: #fff; }
+        .rep-buy-btn { background: transparent; border: 1px solid #00ffcc; color: #00ffcc; padding: 1px 5px; border-radius: 4px; font-size: 9px; cursor: pointer; margin-left: 4px; }
+        .rep-buy-btn:hover { background: #00ffcc; color: #0b0c10; }
+        .rep-buy-btn:disabled { border-color: #555; color: #555; cursor: not-allowed; background: transparent; }
+        .rep-blocked { color: #ff4545; font-size: 10px; font-weight: bold; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -100,6 +104,7 @@
                     <li><b>Баланс</b> — твои деньги. Старт: 15 000 ₽.</li>
                     <li><b>Репутация</b> — рейтинг мастера. Нужна для переездов.</li>
                     <li><b>День</b> — 20 минут реального времени (или кнопка ⏩ «День»).</li>
+                    <li>При <b>репутации 0</b> приём заказов заблокирован. Восстановить можно кнопкой в шапке <b>5 Реп за 2 500 ₽</b>, но <b>только при репутации 0</b>.</li>
                 </ul>
             </div>
             <div class="rules-section">
@@ -157,7 +162,7 @@
     <div class="header">
         <div class="stats-row">
             <div>💰 <span id="stat-balance" class="stat-box">15000</span> ₽</div>
-            <div>⭐ <span id="stat-rep" class="stat-box">10</span> Реп</div>
+            <div>⭐ <span id="stat-rep" class="stat-box">10</span> Реп<button id="buy-rep-btn" class="rep-buy-btn" onclick="buyReputation()">➕5 за 2500₽</button></div>
             <div>📅 День: <span id="stat-day" class="stat-box">1</span></div>
         </div>
         <div class="stats-row" style="margin-bottom: 0; align-items: center;">
@@ -252,10 +257,12 @@
         { name: 'Москва', deliveryMul: 0.7, avitoCount: 14, moveCost: 180000, moveRep: 100 }
     ];
 
+    const REP_PACK_SIZE = 5;
+    const REP_PACK_PRICE = 2500;
+
     // ==== КОМПЛЕКТУЮЩИЕ (расширенный пул) ====
     const COMPONENT_POOL = {
         cpu: [
-            // Intel LGA 1151 (6-7 поколение)
             { name: 'Intel Core i3-6100', basePrice: 1800, brand: 'intel', family: 'Intel Core i3', gen: '6-7 поколение', tier: 1 },
             { name: 'Intel Core i5-6400', basePrice: 3000, brand: 'intel', family: 'Intel Core i5', gen: '6-7 поколение', tier: 2 },
             { name: 'Intel Core i5-6500', basePrice: 3500, brand: 'intel', family: 'Intel Core i5', gen: '6-7 поколение', tier: 2 },
@@ -264,14 +271,12 @@
             { name: 'Intel Core i7-6700K', basePrice: 8000, brand: 'intel', family: 'Intel Core i7', gen: '6-7 поколение', tier: 3 },
             { name: 'Intel Core i7-7700', basePrice: 8500, brand: 'intel', family: 'Intel Core i7', gen: '6-7 поколение', tier: 3 },
             { name: 'Intel Core i7-7700K', basePrice: 10000, brand: 'intel', family: 'Intel Core i7', gen: '6-7 поколение', tier: 3 },
-            // Intel LGA 1151 v2 (8-9 поколение)
             { name: 'Intel Core i3-8100', basePrice: 3000, brand: 'intel', family: 'Intel Core i3', gen: '8-9 поколение', tier: 1 },
             { name: 'Intel Core i5-8400', basePrice: 5500, brand: 'intel', family: 'Intel Core i5', gen: '8-9 поколение', tier: 2 },
             { name: 'Intel Core i7-8700', basePrice: 9000, brand: 'intel', family: 'Intel Core i7', gen: '8-9 поколение', tier: 3 },
             { name: 'Intel Core i5-9400F', basePrice: 6000, brand: 'intel', family: 'Intel Core i5', gen: '8-9 поколение', tier: 2 },
             { name: 'Intel Core i7-9700K', basePrice: 11000, brand: 'intel', family: 'Intel Core i7', gen: '8-9 поколение', tier: 3 },
             { name: 'Intel Core i9-9900K', basePrice: 16000, brand: 'intel', family: 'Intel Core i9', gen: '8-9 поколение', tier: 4 },
-            // Intel LGA 1200 (10-11 поколение)
             { name: 'Intel Core i3-10100F', basePrice: 4500, brand: 'intel', family: 'Intel Core i3', gen: '10 поколение', tier: 1 },
             { name: 'Intel Core i5-10400F', basePrice: 7000, brand: 'intel', family: 'Intel Core i5', gen: '10 поколение', tier: 2 },
             { name: 'Intel Core i5-10600KF', basePrice: 9000, brand: 'intel', family: 'Intel Core i5', gen: '10 поколение', tier: 2 },
@@ -280,7 +285,6 @@
             { name: 'Intel Core i5-11400F', basePrice: 9500, brand: 'intel', family: 'Intel Core i5', gen: '11 поколение', tier: 2 },
             { name: 'Intel Core i7-11700F', basePrice: 15000, brand: 'intel', family: 'Intel Core i7', gen: '11 поколение', tier: 3 },
             { name: 'Intel Core i9-11900F', basePrice: 21000, brand: 'intel', family: 'Intel Core i9', gen: '11 поколение', tier: 4 },
-            // Intel LGA 1700 (12-14 поколение)
             { name: 'Intel Core i3-12100F', basePrice: 7500, brand: 'intel', family: 'Intel Core i3', gen: '12 поколение', tier: 1 },
             { name: 'Intel Core i5-12400F', basePrice: 11000, brand: 'intel', family: 'Intel Core i5', gen: '12 поколение', tier: 2 },
             { name: 'Intel Core i5-12600KF', basePrice: 14500, brand: 'intel', family: 'Intel Core i5', gen: '12 поколение', tier: 2 },
@@ -293,7 +297,6 @@
             { name: 'Intel Core i5-14400F', basePrice: 16000, brand: 'intel', family: 'Intel Core i5', gen: '14 поколение', tier: 2 },
             { name: 'Intel Core i7-14700F', basePrice: 28000, brand: 'intel', family: 'Intel Core i7', gen: '14 поколение', tier: 3 },
             { name: 'Intel Core i9-14900K', basePrice: 48000, brand: 'intel', family: 'Intel Core i9', gen: '14 поколение', tier: 4 },
-            // AMD AM4 (1000-5000)
             { name: 'AMD Ryzen 3 1200', basePrice: 2500, brand: 'amd', family: 'AMD Ryzen 3', gen: '1000 серия', tier: 1 },
             { name: 'AMD Ryzen 5 1600', basePrice: 4500, brand: 'amd', family: 'AMD Ryzen 5', gen: '1000 серия', tier: 2 },
             { name: 'AMD Ryzen 5 2600', basePrice: 5500, brand: 'amd', family: 'AMD Ryzen 5', gen: '2000 серия', tier: 2 },
@@ -307,7 +310,6 @@
             { name: 'AMD Ryzen 7 5700X', basePrice: 16000, brand: 'amd', family: 'AMD Ryzen 7', gen: '5000 серия', tier: 3 },
             { name: 'AMD Ryzen 7 5800X3D', basePrice: 24000, brand: 'amd', family: 'AMD Ryzen 7', gen: '5000 серия', tier: 3 },
             { name: 'AMD Ryzen 9 5900X', basePrice: 32000, brand: 'amd', family: 'AMD Ryzen 9', gen: '5000 серия', tier: 4 },
-            // AMD AM5 (7000-9000)
             { name: 'AMD Ryzen 5 7600', basePrice: 17000, brand: 'amd', family: 'AMD Ryzen 5', gen: '7000 серия', tier: 2 },
             { name: 'AMD Ryzen 7 7700X', basePrice: 26000, brand: 'amd', family: 'AMD Ryzen 7', gen: '7000 серия', tier: 3 },
             { name: 'AMD Ryzen 7 7800X3D', basePrice: 34000, brand: 'amd', family: 'AMD Ryzen 7', gen: '7000 серия', tier: 3 },
@@ -315,14 +317,12 @@
             { name: 'AMD Ryzen 5 9600X', basePrice: 22000, brand: 'amd', family: 'AMD Ryzen 5', gen: '9000 серия', tier: 2 },
             { name: 'AMD Ryzen 7 9700X', basePrice: 32000, brand: 'amd', family: 'AMD Ryzen 7', gen: '9000 серия', tier: 3 },
             { name: 'AMD Ryzen 9 9950X', basePrice: 65000, brand: 'amd', family: 'AMD Ryzen 9', gen: '9000 серия', tier: 4 },
-            // AMD FX / APU (старьё, для дешёвых сборок)
             { name: 'AMD FX-6300', basePrice: 1200, brand: 'amd', family: 'AMD FX', gen: 'FX серия', tier: 1 },
             { name: 'AMD FX-8350', basePrice: 2000, brand: 'amd', family: 'AMD FX', gen: 'FX серия', tier: 1 },
             { name: 'AMD A10-7850K', basePrice: 1500, brand: 'amd', family: 'AMD A-Series', gen: 'A серия', tier: 1 },
             { name: 'AMD A8-7600', basePrice: 1000, brand: 'amd', family: 'AMD A-Series', gen: 'A серия', tier: 1 }
         ],
         gpu: [
-            // NVIDIA GTX 700/900
             { name: 'GTX 750 Ti', basePrice: 2500, brand: 'nvidia', family: 'GTX 750', gen: 'GTX 700', tier: 1 },
             { name: 'GTX 760', basePrice: 3000, brand: 'nvidia', family: 'GTX 760', gen: 'GTX 700', tier: 1 },
             { name: 'GTX 770', basePrice: 3500, brand: 'nvidia', family: 'GTX 770', gen: 'GTX 700', tier: 1 },
@@ -333,7 +333,6 @@
             { name: 'GTX 970', basePrice: 6500, brand: 'nvidia', family: 'GTX 970', gen: 'GTX 900', tier: 2 },
             { name: 'GTX 980', basePrice: 9000, brand: 'nvidia', family: 'GTX 980', gen: 'GTX 900', tier: 3 },
             { name: 'GTX 980 Ti', basePrice: 11000, brand: 'nvidia', family: 'GTX 980', gen: 'GTX 900', tier: 3 },
-            // NVIDIA GTX 10
             { name: 'GTX 1050', basePrice: 3500, brand: 'nvidia', family: 'GTX 1050', gen: 'GTX 10', tier: 1 },
             { name: 'GTX 1050 Ti', basePrice: 5000, brand: 'nvidia', family: 'GTX 1050', gen: 'GTX 10', tier: 1 },
             { name: 'GTX 1060 3GB', basePrice: 6500, brand: 'nvidia', family: 'GTX 1060', gen: 'GTX 10', tier: 2 },
@@ -342,7 +341,6 @@
             { name: 'GTX 1070 Ti', basePrice: 13500, brand: 'nvidia', family: 'GTX 1070', gen: 'GTX 10', tier: 3 },
             { name: 'GTX 1080', basePrice: 15000, brand: 'nvidia', family: 'GTX 1080', gen: 'GTX 10', tier: 4 },
             { name: 'GTX 1080 Ti', basePrice: 17000, brand: 'nvidia', family: 'GTX 1080', gen: 'GTX 10', tier: 4 },
-            // NVIDIA GTX 16 / RTX 20
             { name: 'GTX 1650', basePrice: 9000, brand: 'nvidia', family: 'GTX 1650', gen: 'GTX 16', tier: 2 },
             { name: 'GTX 1650 Super', basePrice: 11000, brand: 'nvidia', family: 'GTX 1650', gen: 'GTX 16', tier: 2 },
             { name: 'GTX 1660', basePrice: 12000, brand: 'nvidia', family: 'GTX 1660', gen: 'GTX 16', tier: 2 },
@@ -356,7 +354,6 @@
             { name: 'RTX 2080', basePrice: 26000, brand: 'nvidia', family: 'RTX 2080', gen: 'RTX 20', tier: 4 },
             { name: 'RTX 2080 Super', basePrice: 30000, brand: 'nvidia', family: 'RTX 2080', gen: 'RTX 20', tier: 4 },
             { name: 'RTX 2080 Ti', basePrice: 35000, brand: 'nvidia', family: 'RTX 2080', gen: 'RTX 20', tier: 5 },
-            // NVIDIA RTX 30
             { name: 'RTX 3050', basePrice: 17000, brand: 'nvidia', family: 'RTX 3050', gen: 'RTX 30', tier: 2 },
             { name: 'RTX 3060 8GB', basePrice: 21000, brand: 'nvidia', family: 'RTX 3060', gen: 'RTX 30', tier: 3 },
             { name: 'RTX 3060 12GB', basePrice: 25000, brand: 'nvidia', family: 'RTX 3060', gen: 'RTX 30', tier: 3 },
@@ -366,7 +363,6 @@
             { name: 'RTX 3080', basePrice: 46000, brand: 'nvidia', family: 'RTX 3080', gen: 'RTX 30', tier: 5 },
             { name: 'RTX 3080 Ti', basePrice: 55000, brand: 'nvidia', family: 'RTX 3080', gen: 'RTX 30', tier: 5 },
             { name: 'RTX 3090', basePrice: 60000, brand: 'nvidia', family: 'RTX 3090', gen: 'RTX 30', tier: 6 },
-            // NVIDIA RTX 40
             { name: 'RTX 4060', basePrice: 28000, brand: 'nvidia', family: 'RTX 4060', gen: 'RTX 40', tier: 3 },
             { name: 'RTX 4060 Ti', basePrice: 38000, brand: 'nvidia', family: 'RTX 4060', gen: 'RTX 40', tier: 4 },
             { name: 'RTX 4070', basePrice: 48000, brand: 'nvidia', family: 'RTX 4070', gen: 'RTX 40', tier: 4 },
@@ -375,14 +371,12 @@
             { name: 'RTX 4080', basePrice: 70000, brand: 'nvidia', family: 'RTX 4080', gen: 'RTX 40', tier: 6 },
             { name: 'RTX 4080 Super', basePrice: 85000, brand: 'nvidia', family: 'RTX 4080', gen: 'RTX 40', tier: 6 },
             { name: 'RTX 4090', basePrice: 110000, brand: 'nvidia', family: 'RTX 4090', gen: 'RTX 40', tier: 7 },
-            // NVIDIA RTX 50
             { name: 'RTX 5060', basePrice: 40000, brand: 'nvidia', family: 'RTX 5060', gen: 'RTX 50', tier: 3 },
             { name: 'RTX 5060 Ti', basePrice: 48000, brand: 'nvidia', family: 'RTX 5060', gen: 'RTX 50', tier: 4 },
             { name: 'RTX 5070', basePrice: 55000, brand: 'nvidia', family: 'RTX 5070', gen: 'RTX 50', tier: 4 },
             { name: 'RTX 5070 Ti', basePrice: 68000, brand: 'nvidia', family: 'RTX 5070', gen: 'RTX 50', tier: 5 },
             { name: 'RTX 5080', basePrice: 80000, brand: 'nvidia', family: 'RTX 5080', gen: 'RTX 50', tier: 6 },
             { name: 'RTX 5090', basePrice: 140000, brand: 'nvidia', family: 'RTX 5090', gen: 'RTX 50', tier: 7 },
-            // AMD RX 400/500 (Полярис)
             { name: 'Radeon RX 460', basePrice: 2500, brand: 'amd', family: 'RX 460', gen: 'RX 400', tier: 1 },
             { name: 'Radeon RX 470', basePrice: 3500, brand: 'amd', family: 'RX 470', gen: 'RX 400', tier: 2 },
             { name: 'Radeon RX 480', basePrice: 4500, brand: 'amd', family: 'RX 480', gen: 'RX 400', tier: 2 },
@@ -391,7 +385,6 @@
             { name: 'Radeon RX 570', basePrice: 4500, brand: 'amd', family: 'RX 570', gen: 'RX 500', tier: 2 },
             { name: 'Radeon RX 580 8GB', basePrice: 6000, brand: 'amd', family: 'RX 580', gen: 'RX 500', tier: 2 },
             { name: 'Radeon RX 590', basePrice: 7500, brand: 'amd', family: 'RX 590', gen: 'RX 500', tier: 2 },
-            // AMD RX 5000/6000
             { name: 'Radeon RX 5500 XT', basePrice: 9000, brand: 'amd', family: 'RX 5500', gen: 'RX 5000', tier: 1 },
             { name: 'Radeon RX 5600 XT', basePrice: 12000, brand: 'amd', family: 'RX 5600', gen: 'RX 5000', tier: 2 },
             { name: 'Radeon RX 5700', basePrice: 14000, brand: 'amd', family: 'RX 5700', gen: 'RX 5000', tier: 3 },
@@ -406,7 +399,6 @@
             { name: 'Radeon RX 6800', basePrice: 38000, brand: 'amd', family: 'RX 6800', gen: 'RX 6000', tier: 4 },
             { name: 'Radeon RX 6800 XT', basePrice: 42000, brand: 'amd', family: 'RX 6800', gen: 'RX 6000', tier: 5 },
             { name: 'Radeon RX 6900 XT', basePrice: 52000, brand: 'amd', family: 'RX 6900', gen: 'RX 6000', tier: 6 },
-            // AMD RX 7000/9000
             { name: 'Radeon RX 7600', basePrice: 26000, brand: 'amd', family: 'RX 7600', gen: 'RX 7000', tier: 2 },
             { name: 'Radeon RX 7600 XT', basePrice: 30000, brand: 'amd', family: 'RX 7600', gen: 'RX 7000', tier: 2 },
             { name: 'Radeon RX 7700 XT', basePrice: 38000, brand: 'amd', family: 'RX 7700', gen: 'RX 7000', tier: 3 },
@@ -610,7 +602,6 @@
         alert('Сохранение выполнено. Проверьте консоль для деталей.');
     }
 
-    // === Санитизация загруженного состояния: не допускаем отрицательных дней ===
     function sanitizeLoadedState() {
         if (Array.isArray(state.deliveries)) {
             state.deliveries.forEach(d => {
@@ -636,6 +627,8 @@
         state.marketOffers = Array.isArray(state.marketOffers) ? state.marketOffers : [];
         state.dialogs = Array.isArray(state.dialogs) ? state.dialogs : [];
         state.deliveries = Array.isArray(state.deliveries) ? state.deliveries : [];
+        if (typeof state.reputation !== 'number' || isNaN(state.reputation)) state.reputation = 0;
+        if (state.reputation < 0) state.reputation = 0;
     }
 
     function loadGame(callback) {
@@ -734,12 +727,10 @@
         dayTimer = setTimeout(() => { advanceDay(); startGameLoop(); }, delay);
     }
 
-    // === ИСПРАВЛЕННАЯ advanceDay (репутация за провал) ===
     function advanceDay() {
         state.day++;
         state.dayElapsedMs = 0;
 
-        // --- Доставки: не уходим в минус, прибывшие переносим на склад ---
         state.deliveries.forEach(del => {
             del.daysLeft = Math.max(0, (del.daysLeft || 0) - 1);
         });
@@ -753,7 +744,6 @@
         });
         state.deliveries = state.deliveries.filter(del => del.daysLeft > 0);
 
-        // --- Диалоги: аккуратно уменьшаем дни, обрабатываем просрочку ---
         state.dialogs.forEach(dial => {
             if (typeof dial.daysLeft !== 'number' || isNaN(dial.daysLeft)) dial.daysLeft = 0;
 
@@ -780,7 +770,6 @@
         saveGame('advanceDay');
     }
 
-    // === Провал заказа со снятием репутации ===
     function failDialog(dial, reasonText, repPenalty) {
         if (dial.stage === 'failed' || dial.stage === 'done') return;
         dial.stage = 'failed';
@@ -1067,7 +1056,31 @@
         dial.chatHistory.push({ side: 'player', text: `Принял! Предоплата ${dial.prepay} ₽ получена. Остаток — ${dial.budget - dial.prepay} ₽ при сдаче.` });
         dial.chatHistory.push({ side: 'buyer', text: `Перевёл ${dial.prepay} ₽. Остальное — при получении.` });
     }
+
+    // === Покупка репутации (только при 0) ===
+    function buyReputation() {
+        if (state.reputation > 0) {
+            alert("Пополнить репутацию можно только при 0 репутации.");
+            return;
+        }
+        if (state.balance < REP_PACK_PRICE) {
+            alert(`Недостаточно денег. Нужно ${REP_PACK_PRICE} ₽.`);
+            return;
+        }
+        state.balance -= REP_PACK_PRICE;
+        state.reputation += REP_PACK_SIZE;
+        updateUI();
+        saveGame('buyRep');
+        alert(`✅ Репутация +${REP_PACK_SIZE}. Теперь у вас ${state.reputation} реп.`);
+    }
+
+    // === Проверка блокировки приёма заказов ===
+    function canAcceptOrders() {
+        return state.reputation > 0;
+    }
+
     function acceptOrderImmediate(dialId) {
+        if (!canAcceptOrders()) { alert("Репутация 0 — приём заказов заблокирован. Восстановите репутацию (5 реп за 2500 ₽ в шапке)."); return; }
         let dial = state.dialogs.find(d => d.id === dialId);
         if (!dial) return;
         dial.stage = 'waiting';
@@ -1110,6 +1123,7 @@
         updateUI(); saveGame('negotiate');
     }
     function acceptAfterExpensive(dialId) {
+        if (!canAcceptOrders()) { alert("Репутация 0 — приём заказов заблокирован. Восстановите репутацию (5 реп за 2500 ₽ в шапке)."); return; }
         let dial = state.dialogs.find(d => d.id === dialId);
         if (!dial) return;
         dial.stage = 'waiting';
@@ -1119,6 +1133,7 @@
         updateUI(); saveGame('acceptAfterExp');
     }
     function acceptAtOriginalPrice(dialId) {
+        if (!canAcceptOrders()) { alert("Репутация 0 — приём заказов заблокирован. Восстановите репутацию (5 реп за 2500 ₽ в шапке)."); return; }
         let dial = state.dialogs.find(d => d.id === dialId);
         if (!dial) return;
         dial.stage = 'waiting';
@@ -1140,6 +1155,7 @@
     }
     function declineOrder(dialId) { state.dialogs = state.dialogs.filter(d => d.id !== dialId); updateUI(); saveGame('decline'); }
     function acceptAfterDelay(dialId) {
+        if (!canAcceptOrders()) { alert("Репутация 0 — приём заказов заблокирован. Восстановите репутацию (5 реп за 2500 ₽ в шапке)."); return; }
         let dial = state.dialogs.find(d => d.id === dialId);
         if (!dial) return;
         dial.stage = 'waiting';
@@ -1231,6 +1247,8 @@
     function updateUI() {
         document.getElementById('stat-balance').innerText = state.balance.toLocaleString();
         document.getElementById('stat-rep').innerText = state.reputation;
+        let buyBtn = document.getElementById('buy-rep-btn');
+        if (buyBtn) buyBtn.disabled = state.balance < REP_PACK_PRICE || state.reputation > 0;
         document.getElementById('stat-day').innerText = state.day;
         document.getElementById('stat-location').innerText = `📍 ${LOCATIONS[state.currentLocationIdx].name}`;
         let nextLoc = LOCATIONS[state.currentLocationIdx + 1];
@@ -1252,6 +1270,7 @@
             container.innerHTML = '<div style="text-align:center; color:#858687; padding-top:20px; font-size:12px;">Пока нет новых сообщений...</div>';
             return;
         }
+        let repBlocked = !canAcceptOrders();
         activeDialogs.forEach(dial => {
             let safeDaysLeft = Math.max(0, dial.daysLeft || 0);
             let html = `<div class="chat-container">`;
@@ -1277,22 +1296,38 @@
             html += `<div class="chat-actions">`;
             if (dial.type === 'order') {
                 if (dial.stage === 'deal') {
-                    html += `<button class="btn btn-sm btn-success" onclick="acceptOrderImmediate(${dial.id})">✅ Принять (предоплата)</button>`;
+                    if (repBlocked) {
+                        html += `<div class="rep-blocked">⚠️ Репутация 0 — приём заказов заблокирован. Восстановите репутацию (➕5 за 2500 ₽ в шапке).</div>`;
+                    } else {
+                        html += `<button class="btn btn-sm btn-success" onclick="acceptOrderImmediate(${dial.id})">✅ Принять (предоплата)</button>`;
+                    }
                     html += `<button class="btn btn-sm btn-warn" onclick="negotiatePrice(${dial.id})">💰 Торговаться</button>`;
                     html += `<button class="btn btn-sm btn-warn" onclick="sayDelay(${dial.id})">⏰ Сказать о задержке</button>`;
                     html += `<button class="btn btn-sm btn-danger" onclick="declineOrder(${dial.id})">❌ Отказать</button>`;
                 } else if (dial.stage === 'confirm_expensive') {
                     if (dial.budgetNegotiation === 'accepted') {
-                        html += `<button class="btn btn-sm btn-success" onclick="acceptAfterExpensive(${dial.id})">✅ Принять (новая цена)</button>`;
+                        if (repBlocked) {
+                            html += `<div class="rep-blocked">⚠️ Репутация 0 — приём заказов заблокирован.</div>`;
+                        } else {
+                            html += `<button class="btn btn-sm btn-success" onclick="acceptAfterExpensive(${dial.id})">✅ Принять (новая цена)</button>`;
+                        }
                         html += `<button class="btn btn-sm btn-danger" onclick="declineOrder(${dial.id})">❌ Отказать</button>`;
                     } else {
-                        html += `<button class="btn btn-sm btn-success" onclick="acceptAtOriginalPrice(${dial.id})">✅ Принять за ${dial.budget} ₽</button>`;
+                        if (repBlocked) {
+                            html += `<div class="rep-blocked">⚠️ Репутация 0 — приём заказов заблокирован.</div>`;
+                        } else {
+                            html += `<button class="btn btn-sm btn-success" onclick="acceptAtOriginalPrice(${dial.id})">✅ Принять за ${dial.budget} ₽</button>`;
+                        }
                         html += `<button class="btn btn-sm btn-warn" onclick="negotiatePrice(${dial.id})">💰 Попробовать ещё раз</button>`;
                         html += `<button class="btn btn-sm btn-danger" onclick="declineOrder(${dial.id})">❌ Отказать</button>`;
                     }
                 } else if (dial.stage === 'confirm_delay') {
                     if (dial.delayDecision === 'accepted') {
-                        html += `<button class="btn btn-sm btn-success" onclick="acceptAfterDelay(${dial.id})">✅ Принять (предоплата)</button>`;
+                        if (repBlocked) {
+                            html += `<div class="rep-blocked">⚠️ Репутация 0 — приём заказов заблокирован.</div>`;
+                        } else {
+                            html += `<button class="btn btn-sm btn-success" onclick="acceptAfterDelay(${dial.id})">✅ Принять (предоплата)</button>`;
+                        }
                         html += `<button class="btn btn-sm btn-danger" onclick="declineOrder(${dial.id})">❌ Отказать</button>`;
                     } else {
                         html += `<button class="btn btn-sm btn-danger" onclick="declineOrder(${dial.id})">❌ Закрыть диалог</button>`;
