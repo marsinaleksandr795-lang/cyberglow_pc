@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CyberGlow PC Market Tycoon</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-user-select: none; user-select: none; }
+        body { background-color: #0b0c10; color: #c5c6c7; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px; }
+        #phone-container { width: 100%; max-width: 360px; height: 680px; background-color: #1f2833; border: 4px solid #45f3ff; border-radius: 24px; overflow: hidden; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 20px rgba(69, 243, 255, 0.2); }
+        .header { background-color: #0b0c10; padding: 10px; border-bottom: 2px solid #45f3ff; font-size: 11px; }
+        .stats-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .stat-box { color: #45f3ff; font-weight: bold; }
+        .location-box { color: #66fcf1; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .time-controls { display: flex; align-items: center; gap: 4px; }
+        .time-btn { background: #1f2833; border: 1px solid #45f3ff; color: #45f3ff; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 10px; }
+        .time-btn.active { background: #45f3ff; color: #0b0c10; font-weight: bold; }
+        .time-btn.skip { border-color: #9b51e0; color: #e0b0ff; font-size: 9px; }
+        .time-btn.skip:hover { background: #9b51e0; color: #fff; }
+        .clock-row { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+        .clock-text { color: #66fcf1; font-size: 10px; font-weight: bold; min-width: 90px; }
+        .day-progress-bar { flex: 1; height: 4px; background: #1f2833; border-radius: 2px; overflow: hidden; }
+        .day-progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #45f3ff, #9b51e0); transition: width 0.3s linear; }
+        .content { flex: 1; overflow-y: auto; padding: 10px; padding-bottom: 65px; }
+        .screen { display: none; } .screen.active { display: block; }
+        h2 { font-size: 16px; color: #66fcf1; margin-bottom: 10px; text-transform: uppercase; border-left: 3px solid #45f3ff; padding-left: 6px; }
+        .card { background: #0b0c10; border: 1px solid #c5c6c7; border-radius: 8px; padding: 10px; margin-bottom: 10px; font-size: 12px; position: relative; }
+        .card.premium { border-color: #45f3ff; } .card.pending { border-color: #ffaa00; }
+        .card-title { font-weight: bold; color: #fff; margin-bottom: 4px; display: flex; justify-content: space-between; }
+        .card-meta { font-size: 11px; color: #858687; margin-bottom: 6px; }
+        .badge { background: #252627; padding: 1px 4px; border-radius: 3px; font-size: 9px; text-transform: uppercase; }
+        .badge.green { color: #00ffcc; border: 1px solid #00ffcc; }
+        .badge.orange { color: #ffaa00; border: 1px solid #ffaa00; }
+        .badge.red { color: #ff4545; border: 1px solid #ff4545; }
+        .badge.blue { color: #45f3ff; border: 1px solid #45f3ff; }
+        .badge.purple { color: #e0b0ff; border: 1px solid #9b51e0; }
+        .nav-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: 55px; background: #0b0c10; border-top: 2px solid #45f3ff; display: flex; justify-content: space-around; align-items: center; z-index: 10; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #c5c6c7; cursor: pointer; font-size: 10px; flex: 1; padding: 5px 0; transition: 0.2s; }
+        .nav-item.active { color: #45f3ff; font-weight: bold; background: rgba(69, 243, 255, 0.05); }
+        .nav-icon { font-size: 16px; margin-bottom: 2px; }
+        .btn { background: #1f2833; border: 1px solid #45f3ff; color: #45f3ff; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; text-align: center; display: inline-block; margin-top: 5px; margin-right: 5px; transition: 0.2s; }
+        .btn:hover, .btn:active { background: #45f3ff; color: #0b0c10; }
+        .btn-sm { padding: 4px 6px; font-size: 10px; }
+        .btn-danger { border-color: #ff4545; color: #ff4545; }
+        .btn-danger:hover, .btn-danger:active { background: #ff4545; color: #fff; }
+        .btn-success { border-color: #00ffcc; color: #00ffcc; }
+        .btn-success:hover, .btn-success:active { background: #00ffcc; color: #0b0c10; }
+        .btn-warn { border-color: #ffaa00; color: #ffaa00; }
+        .btn-warn:hover, .btn-warn:active { background: #ffaa00; color: #0b0c10; }
+        .market-tabs, .type-tabs, .sub-tabs { display: flex; gap: 2px; margin-bottom: 6px; overflow-x: auto; padding-bottom: 4px; }
+        .type-tabs { margin-bottom: 6px; } .sub-tabs { margin-bottom: 10px; }
+        .market-tab, .type-tab, .sub-tab { background: #0b0c10; border: 1px solid #1f2833; color: #c5c6c7; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; white-space: nowrap; }
+        .market-tab.active, .type-tab.active, .sub-tab.active { border-color: #45f3ff; color: #45f3ff; background: rgba(69, 243, 255, 0.05); }
+        .type-tab.active { border-color: #9b51e0; color: #e0b0ff; background: rgba(155, 81, 224, 0.1); }
+        .sub-tab.active { border-color: #00ffcc; color: #00ffcc; background: rgba(0, 255, 204, 0.08); }
+        .search-container { display: flex; gap: 4px; margin-bottom: 10px; }
+        .search-input { flex: 1; background: #0b0c10; border: 1px solid #c5c6c7; border-radius: 4px; color: #fff; padding: 4px 8px; font-size: 11px; }
+        .search-input:focus { border-color: #45f3ff; outline: none; }
+        .move-banner { background: linear-gradient(135deg, #1f2833 0%, #4a154b 100%); border: 1px solid #9b51e0; border-radius: 8px; padding: 10px; margin-bottom: 15px; font-size: 11px; }
+        .chat-container { background: #0b0c10; border: 1px solid #1f2833; border-radius: 8px; padding: 8px; margin-bottom: 10px; }
+        .chat-bubble { padding: 6px 10px; border-radius: 8px; margin-bottom: 6px; max-width: 85%; font-size: 11px; line-height: 1.3; }
+        .chat-buyer { background: #1f2833; color: #fff; margin-right: auto; border-bottom-left-radius: 2px;}
+        .chat-player { background: rgba(69, 243, 255, 0.1); color: #45f3ff; margin-left: auto; border-bottom-right-radius: 2px; text-align: right;}
+        .chat-actions { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+        .section-label { font-size: 10px; text-transform: uppercase; color: #858687; margin: 8px 0 4px 0; letter-spacing: 0.5px; }
+        .req-line { font-size: 11px; color: #c5c6c7; margin-bottom: 2px; }
+        .req-line b { color: #66fcf1; }
+        #rules-overlay { position: fixed; inset: 0; background: rgba(11, 12, 16, 0.95); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 10px; }
+        #rules-overlay.hidden { display: none; }
+        #rules-card { background: #1f2833; border: 2px solid #45f3ff; border-radius: 16px; padding: 16px; max-width: 360px; max-height: 640px; overflow-y: auto; box-shadow: 0 0 30px rgba(69, 243, 255, 0.4); color: #c5c6c7; font-size: 11px; line-height: 1.4; }
+        #rules-card h3 { color: #66fcf1; font-size: 15px; margin-bottom: 10px; text-align: center; text-transform: uppercase; letter-spacing: 1px; }
+        .rules-body p { margin-bottom: 10px; }
+        .rules-section { margin-bottom: 10px; background: #0b0c10; border: 1px solid #45f3ff33; border-radius: 8px; padding: 8px 10px; }
+        .rules-title { color: #45f3ff; font-weight: bold; margin-bottom: 4px; font-size: 12px; }
+        .rules-section ul { padding-left: 16px; margin: 0; }
+        .rules-section li { margin-bottom: 3px; }
+        .rules-section b { color: #66fcf1; }
+        #rules-start-btn { display: block; width: 100%; background: #00ffcc; color: #0b0c10; border: none; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        #rules-start-btn:hover { background: #45f3ff; }
+        #rules-reset-btn { display: block; width: 100%; background: transparent; color: #ff4545; border: 1px solid #ff4545; padding: 8px; border-radius: 8px; font-size: 12px; cursor: pointer; margin-top: 6px; }
+        #rules-reset-btn:hover { background: #ff4545; color: #fff; }
+        #rules-save-btn { display: block; width: 100%; background: transparent; color: #45f3ff; border: 1px solid #45f3ff; padding: 8px; border-radius: 8px; font-size: 12px; cursor: pointer; margin-top: 6px; }
+        #rules-save-btn:hover { background: #45f3ff; color: #0b0c10; }
+        .save-indicator { position: fixed; bottom: 70px; right: 20px; background: rgba(0,255,204,0.9); color: #0b0c10; padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: bold; opacity: 0; transition: opacity 0.3s; z-index: 999; pointer-events: none; }
+        .save-indicator.show { opacity: 1; }
+        .save-indicator.error { background: rgba(255,69,69,0.95); color: #fff; }
+    </style>
+</head>
+<body>
+
+<div id="rules-overlay">
+    <div id="rules-card">
+        <h3>🎮 CyberGlow PC Market Tycoon</h3>
+        <div class="rules-body">
+            <p>Ты — сборщик ПК в провинциальном городе. Собирай компьютеры под заказ клиентов, закупай комплектующие, торгуйся и зарабатывай репутацию, чтобы переехать в город покрупнее.</p>
+            <div class="rules-section">
+                <div class="rules-title">💰 Основы</div>
+                <ul>
+                    <li><b>Баланс</b> — твои деньги. Старт: 15 000 ₽.</li>
+                    <li><b>Репутация</b> — рейтинг мастера. Нужна для переездов.</li>
+                    <li><b>День</b> — 20 минут реального времени (или кнопка ⏩ «День»).</li>
+                </ul>
+            </div>
+            <div class="rules-section">
+                <div class="rules-title">💬 Заказы</div>
+                <ul>
+                    <li>Клиент просит <b>категорию</b> железа (например, «Intel Core i5 12 поколения»), а не конкретную модель — можешь ставить любую из этой группы.</li>
+                    <li>Бюджет клиента обычно <b>ниже</b> рыночной стоимости деталей. Прибыль — из скидок на Авито, торга и AliExpress.</li>
+                    <li>При принятии заказа клиент даёт <b>предоплату 30%</b>. Остаток — при сдаче ПК.</li>
+                    <li>На этапе знакомства можно: принять, <b>торговаться</b> (клиент может доплатить +10–25%), сказать о задержке или отказать.</li>
+                </ul>
+            </div>
+            <div class="rules-section">
+                <div class="rules-title">🛒 Закупки</div>
+                <ul>
+                    <li><b>Авито</b> — б/у детали со скидкой 40–75%, но 25% риск брака. Здесь можно <b>торговаться</b> с продавцом.</li>
+                    <li><b>AliExpress</b> — дешевле на 15%, но доставка долгая и часто брак.</li>
+                    <li><b>Ozon / Я.Маркет / WB</b> — новые детали, дороже, но надёжнее.</li>
+                    <li>Фильтры: тип (ЦП/ГПУ/ОЗУ) → бренд (Intel/AMD/NVIDIA/DDR) → площадка.</li>
+                </ul>
+            </div>
+            <div class="rules-section">
+                <div class="rules-title">🛠️ Верстак</div>
+                <ul>
+                    <li>Проверяй б/у детали — бракованные нельзя ставить в сборку.</li>
+                    <li>Собери ПК из проверенных ЦП + ГПУ + ОЗУ и сдай клиенту.</li>
+                    <li>Брак с Авито можно сдать как лом (25%), из магазина — вернуть (90%).</li>
+                </ul>
+            </div>
+            <div class="rules-section">
+                <div class="rules-title">🚀 Прогресс</div>
+                <ul>
+                    <li>Омск → Новосибирск → Екатеринбург → Москва.</li>
+                    <li>Для переезда нужны деньги и репутация. В новых городах больше объявлений на Авито.</li>
+                </ul>
+            </div>
+            <div class="rules-section">
+                <div class="rules-title">💾 Сохранение</div>
+                <ul>
+                    <li>Прогресс сохраняется <b>автоматически</b> в облако Telegram (или в браузере при отладке).</li>
+                    <li>Сохраняется при каждом действии + при сворачивании/закрытии.</li>
+                    <li>Кнопка «Сброс» удалит сохранение безвозвратно.</li>
+                </ul>
+            </div>
+        </div>
+        <button id="rules-start-btn" onclick="closeRules()">▶ Начать игру</button>
+        <button id="rules-save-btn" onclick="manualSave()">💾 Сохранить сейчас</button>
+        <button id="rules-reset-btn" onclick="resetGame()">🗑 Сбросить прогресс</button>
+    </div>
+</div>
+
+<div class="save-indicator" id="save-indicator">💾 Сохранено</div>
+
+<div id="phone-container">
+    <div class="header">
+        <div class="stats-row">
+            <div>💰 <span id="stat-balance" class="stat-box">15000</span> ₽</div>
+            <div>⭐ <span id="stat-rep" class="stat-box">10</span> Реп</div>
+            <div>📅 День: <span id="stat-day" class="stat-box">1</span></div>
+        </div>
+        <div class="stats-row" style="margin-bottom: 0; align-items: center;">
+            <div id="stat-location" class="location-box">📍 Омск</div>
+            <div class="time-controls">
+                <button class="time-btn" onclick="setTimeSpeed(0)" id="tbtn-0">⏸</button>
+                <button class="time-btn active" onclick="setTimeSpeed(1)" id="tbtn-1">1x</button>
+                <button class="time-btn" onclick="setTimeSpeed(2)" id="tbtn-2">2x</button>
+                <button class="time-btn skip" onclick="skipDay()">⏩ День</button>
+            </div>
+        </div>
+        <div class="clock-row">
+            <div class="clock-text" id="clock-text">00:00 · 1</div>
+            <div class="day-progress-bar"><div class="day-progress-fill" id="day-progress-fill"></div></div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div id="screen-dialogs" class="screen active">
+            <h2>Диалоги и Заказы</h2>
+            <div id="dialogs-list"></div>
+        </div>
+
+        <div id="screen-market" class="screen">
+            <h2>Закупки рынка</h2>
+            <div class="type-tabs">
+                <button class="type-tab active" onclick="switchType('all', event)">🛒 Все</button>
+                <button class="type-tab" onclick="switchType('cpu', event)">🧠 ЦП</button>
+                <button class="type-tab" onclick="switchType('gpu', event)">🎮 ГПУ</button>
+                <button class="type-tab" onclick="switchType('ram', event)">💾 ОЗУ</button>
+            </div>
+            <div class="sub-tabs" id="sub-tabs"></div>
+            <div class="market-tabs">
+                <button class="market-tab active" onclick="switchMarket('avito', event)">Авито (Б/У)</button>
+                <button class="market-tab" onclick="switchMarket('ali', event)">AliExpress</button>
+                <button class="market-tab" onclick="switchMarket('ozon', event)">Ozon</button>
+                <button class="market-tab" onclick="switchMarket('ym', event)">Я.Маркет</button>
+                <button class="market-tab" onclick="switchMarket('wb', event)">WB</button>
+            </div>
+            <div class="search-container">
+                <input type="text" id="market-search" class="search-input" placeholder="Поиск деталей...">
+                <button class="btn btn-sm" onclick="triggerSearch()" style="margin:0;">🔍</button>
+            </div>
+            <div id="market-items-list"></div>
+        </div>
+
+        <div id="screen-workbench" class="screen">
+            <div class="move-banner" id="move-banner-container">
+                <div style="font-weight:bold; color:#9b51e0; margin-bottom:4px;">🚀 Этап Переезда</div>
+                <div id="move-info">Следующий город: Новосибирск<br>Нужно: 30 000 ₽ & 25 Репутации</div>
+                <button class="btn btn-sm" onclick="tryRelocate()" style="margin-top:6px; border-color:#9b51e0; color:#e0b0ff;">Переехать</button>
+            </div>
+            <h2>Верстак & Склад</h2>
+            <div class="section-label">Сборка Нового ПК</div>
+            <div class="card" style="border-color: #66fcf1;">
+                <div class="card-title">Конфигуратор системного блока</div>
+                <div style="margin-bottom: 6px; font-size:11px;">
+                    <div>⚙️ ЦП: <select id="build-cpu" style="background:#0b0c10; color:#fff; font-size:11px; border:1px solid #333;"><option value="">-- Выбрать --</option></select></div>
+                    <div style="margin-top:4px;">⚙️ ГПУ: <select id="build-gpu" style="background:#0b0c10; color:#fff; font-size:11px; border:1px solid #333;"><option value="">-- Выбрать --</option></select></div>
+                    <div style="margin-top:4px;">⚙️ ОЗУ: <select id="build-ram" style="background:#0b0c10; color:#fff; font-size:11px; border:1px solid #333;"><option value="">-- Выбрать --</option></select></div>
+                </div>
+                <button class="btn btn-sm btn-success" onclick="assemblePC()">Собрать ПК</button>
+            </div>
+            <div class="section-label">Ваш Склад деталей</div>
+            <div id="warehouse-list"></div>
+            <div class="section-label">Доставки в пути</div>
+            <div id="delivery-list"></div>
+            <div class="section-label">Готовые ПК на продажу</div>
+            <div id="built-pcs-list"></div>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-item active" id="nav-dialogs" onclick="switchScreen('dialogs')"><span class="nav-icon">💬</span><span>Диалоги</span></div>
+        <div class="nav-item" id="nav-market" onclick="switchScreen('market')"><span class="nav-icon">🛒</span><span>Закупки</span></div>
+        <div class="nav-item" id="nav-workbench" onclick="switchScreen('workbench')"><span class="nav-icon">🛠️</span><span>Верстак</span></div>
+    </div>
+</div>
+
+<script>
+    const SAVE_KEY = 'cyberglow_save_v2';
+    let state = {
+        balance: 15000, reputation: 10, day: 1, dayElapsedMs: 0, speed: 1,
+        currentLocationIdx: 0, currentMarket: 'avito', currentType: 'all', currentSub: 'all',
+        searchQuery: '', warehouse: [], deliveries: [], builtPCs: [], dialogs: [], marketOffers: [], idCounter: 1
+    };
+
+    const LOCATIONS = [
+        { name: 'Омск', deliveryMul: 1.5, avitoCount: 4, moveCost: 0, moveRep: 0 },
+        { name: 'Новосибирск', deliveryMul: 1.2, avitoCount: 6, moveCost: 30000, moveRep: 25 },
+        { name: 'Екатеринбург', deliveryMul: 1.0, avitoCount: 8, moveCost: 75000, moveRep: 50 },
+        { name: 'Москва', deliveryMul: 0.7, avitoCount: 14, moveCost: 180000, moveRep: 100 }
+    ];
+
+    const COMPONENT_POOL = {
+        cpu: [
+            { name: 'Intel Core i3-8100', basePrice: 3000, brand: 'intel', family: 'Intel Core i3', gen: '8-9 поколение', tier: 1 },
+            { name: 'Intel Core i5-8400', basePrice: 5500, brand: 'intel', family: 'Intel Core i5', gen: '8-9 поколение', tier: 2 },
+            { name: 'Intel Core i7-8700', basePrice: 9000, brand: 'intel', family: 'Intel Core i7', gen: '8-9 поколение', tier: 3 },
+            { name: 'Intel Core i5-9400F', basePrice: 6000, brand: 'intel', family: 'Intel Core i5', gen: '8-9 поколение', tier: 2 },
+            { name: 'Intel Core i7-9700K', basePrice: 11000, brand: 'intel', family: 'Intel Core i7', gen: '8-9 поколение', tier: 3 },
+            { name: 'Intel Core i9-9900K', basePrice: 16000, brand: 'intel', family: 'Intel Core i9', gen: '8-9 поколение', tier: 4 },
+            { name: 'Intel Core i3-10100F', basePrice: 4500, brand: 'intel', family: 'Intel Core i3', gen: '10 поколение', tier: 1 },
+            { name: 'Intel Core i5-10400F', basePrice: 7000, brand: 'intel', family: 'Intel Core i5', gen: '10 поколение', tier: 2 },
+            { name: 'Intel Core i5-10600KF', basePrice: 9000, brand: 'intel', family: 'Intel Core i5', gen: '10 поколение', tier: 2 },
+            { name: 'Intel Core i7-10700F', basePrice: 13000, brand: 'intel', family: 'Intel Core i7', gen: '10 поколение', tier: 3 },
+            { name: 'Intel Core i9-10900F', basePrice: 18000, brand: 'intel', family: 'Intel Core i9', gen: '10 поколение', tier: 4 },
+            { name: 'Intel Core i5-11400F', basePrice: 9500, brand: 'intel', family: 'Intel Core i5', gen: '11 поколение', tier: 2 },
+            { name: 'Intel Core i7-11700F', basePrice: 15000, brand: 'intel', family: 'Intel Core i7', gen: '11 поколение', tier: 3 },
+            { name: 'Intel Core i9-11900F', basePrice: 21000, brand: 'intel', family: 'Intel Core i9', gen: '11 поколение', tier: 4 },
+            { name: 'Intel Core i3-12100F', basePrice: 7500, brand: 'intel', family: 'Intel Core i3', gen: '12 поколение', tier: 1 },
+            { name: 'Intel Core i5-12400F', basePrice: 11000, brand: 'intel', family: 'Intel Core i5', gen: '12 поколение', tier: 2 },
+            { name: 'Intel Core i5-12600KF', basePrice: 14500, brand: 'intel', family: 'Intel Core i5', gen: '12 поколение', tier: 2 },
+            { name: 'Intel Core i7-12700F', basePrice: 18000, brand: 'intel', family: 'Intel Core i7', gen: '12 поколение', tier: 3 },
+            { name: 'Intel Core i9-12900K', basePrice: 30000, brand: 'intel', family: 'Intel Core i9', gen: '12 поколение', tier: 4 },
+            { name: 'Intel Core i5-13400F', basePrice: 13500, brand: 'intel', family: 'Intel Core i5', gen: '13 поколение', tier: 2 },
+            { name: 'Intel Core i5-13600KF', basePrice: 19000, brand: 'intel', family: 'Intel Core i5', gen: '13 поколение', tier: 2 },
+            { name: 'Intel Core i7-13700F', basePrice: 24000, brand: 'intel', family: 'Intel Core i7', gen: '13 поколение', tier: 3 },
+            { name: 'Intel Core i9-13900K', basePrice: 40000, brand: 'intel', family: 'Intel Core i9', gen: '13 поколение', tier: 4 },
+            { name: 'Intel Core i5-14400F', basePrice: 16000, brand: 'intel', family: 'Intel Core i5', gen: '14 поколение', tier: 2 },
+            { name: 'Intel Core i7-14700F', basePrice: 28000, brand: 'intel', family: 'Intel Core i7', gen: '14 поколение', tier: 3 },
+            { name: 'Intel Core i9-14900K', basePrice: 48000, brand: 'intel', family: 'Intel Core i9', gen: '14 поколение', tier: 4 },
+            { name: 'AMD Ryzen 3 1200', basePrice: 2500, brand: 'amd', family: 'AMD Ryzen 3', gen: '1000 серия', tier: 1 },
+            { name: 'AMD Ryzen 5 1600', basePrice: 4500, brand: 'amd', family: 'AMD Ryzen 5', gen: '1000 серия', tier: 2 },
+            { name: 'AMD Ryzen 5 2600', basePrice: 5500, brand: 'amd', family: 'AMD Ryzen 5', gen: '2000 серия', tier: 2 },
+            { name: 'AMD Ryzen 7 2700X', basePrice: 8500, brand: 'amd', family: 'AMD Ryzen 7', gen: '2000 серия', tier: 3 },
+            { name: 'AMD Ryzen 3 3100', basePrice: 5500, brand: 'amd', family: 'AMD Ryzen 3', gen: '3000 серия', tier: 1 },
+            { name: 'AMD Ryzen 5 3600', basePrice: 7000, brand: 'amd', family: 'AMD Ryzen 5', gen: '3000 серия', tier: 2 },
+            { name: 'AMD Ryzen 7 3700X', basePrice: 12000, brand: 'amd', family: 'AMD Ryzen 7', gen: '3000 серия', tier: 3 },
+            { name: 'AMD Ryzen 9 3900X', basePrice: 20000, brand: 'amd', family: 'AMD Ryzen 9', gen: '3000 серия', tier: 4 },
+            { name: 'AMD Ryzen 5 5600', basePrice: 11000, brand: 'amd', family: 'AMD Ryzen 5', gen: '5000 серия', tier: 2 },
+            { name: 'AMD Ryzen 5 5600X', basePrice: 13000, brand: 'amd', family: 'AMD Ryzen 5', gen: '5000 серия', tier: 2 },
+            { name: 'AMD Ryzen 7 5700X', basePrice: 16000, brand: 'amd', family: 'AMD Ryzen 7', gen: '5000 серия', tier: 3 },
+            { name: 'AMD Ryzen 7 5800X3D', basePrice: 24000, brand: 'amd', family: 'AMD Ryzen 7', gen: '5000 серия', tier: 3 },
+            { name: 'AMD Ryzen 9 5900X', basePrice: 32000, brand: 'amd', family: 'AMD Ryzen 9', gen: '5000 серия', tier: 4 },
+            { name: 'AMD Ryzen 5 7600', basePrice: 17000, brand: 'amd', family: 'AMD Ryzen 5', gen: '7000 серия', tier: 2 },
+            { name: 'AMD Ryzen 7 7700X', basePrice: 26000, brand: 'amd', family: 'AMD Ryzen 7', gen: '7000 серия', tier: 3 },
+            { name: 'AMD Ryzen 7 7800X3D', basePrice: 34000, brand: 'amd', family: 'AMD Ryzen 7', gen: '7000 серия', tier: 3 },
+            { name: 'AMD Ryzen 9 7900X', basePrice: 45000, brand: 'amd', family: 'AMD Ryzen 9', gen: '7000 серия', tier: 4 },
+            { name: 'AMD Ryzen 5 9600X', basePrice: 22000, brand: 'amd', family: 'AMD Ryzen 5', gen: '9000 серия', tier: 2 },
+            { name: 'AMD Ryzen 7 9700X', basePrice: 32000, brand: 'amd', family: 'AMD Ryzen 7', gen: '9000 серия', tier: 3 },
+            { name: 'AMD Ryzen 9 9950X', basePrice: 65000, brand: 'amd', family: 'AMD Ryzen 9', gen: '9000 серия', tier: 4 }
+        ],
+        gpu: [
+            { name: 'GTX 1050', basePrice: 3500, brand: 'nvidia', family: 'GTX 1050', gen: 'GTX 10', tier: 1 },
+            { name: 'GTX 1050 Ti', basePrice: 5000, brand: 'nvidia', family: 'GTX 1050', gen: 'GTX 10', tier: 1 },
+            { name: 'GTX 1060 3GB', basePrice: 6500, brand: 'nvidia', family: 'GTX 1060', gen: 'GTX 10', tier: 2 },
+            { name: 'GTX 1060 6GB', basePrice: 8000, brand: 'nvidia', family: 'GTX 1060', gen: 'GTX 10', tier: 2 },
+            { name: 'GTX 1070', basePrice: 11000, brand: 'nvidia', family: 'GTX 1070', gen: 'GTX 10', tier: 3 },
+            { name: 'GTX 1070 Ti', basePrice: 13500, brand: 'nvidia', family: 'GTX 1070', gen: 'GTX 10', tier: 3 },
+            { name: 'GTX 1080', basePrice: 15000, brand: 'nvidia', family: 'GTX 1080', gen: 'GTX 10', tier: 4 },
+            { name: 'GTX 1080 Ti', basePrice: 17000, brand: 'nvidia', family: 'GTX 1080', gen: 'GTX 10', tier: 4 },
+            { name: 'GTX 1650', basePrice: 9000, brand: 'nvidia', family: 'GTX 1650', gen: 'GTX 16', tier: 2 },
+            { name: 'GTX 1650 Super', basePrice: 11000, brand: 'nvidia', family: 'GTX 1650', gen: 'GTX 16', tier: 2 },
+            { name: 'GTX 1660', basePrice: 12000, brand: 'nvidia', family: 'GTX 1660', gen: 'GTX 16', tier: 2 },
+            { name: 'GTX 1660 Super', basePrice: 13000, brand: 'nvidia', family: 'GTX 1660', gen: 'GTX 16', tier: 2 },
+            { name: 'GTX 1660 Ti', basePrice: 14000, brand: 'nvidia', family: 'GTX 1660', gen: 'GTX 16', tier: 3 },
+            { name: 'RTX 2060', basePrice: 14000, brand: 'nvidia', family: 'RTX 2060', gen: 'RTX 20', tier: 2 },
+            { name: 'RTX 2060 Super', basePrice: 17000, brand: 'nvidia', family: 'RTX 2060', gen: 'RTX 20', tier: 3 },
+            { name: 'RTX 2070', basePrice: 19000, brand: 'nvidia', family: 'RTX 2070', gen: 'RTX 20', tier: 3 },
+            { name: 'RTX 2070 Super', basePrice: 22000, brand: 'nvidia', family: 'RTX 2070', gen: 'RTX 20', tier: 3 },
+            { name: 'RTX 2080', basePrice: 26000, brand: 'nvidia', family: 'RTX 2080', gen: 'RTX 20', tier: 4 },
+            { name: 'RTX 2080 Super', basePrice: 30000, brand: 'nvidia', family: 'RTX 2080', gen: 'RTX 20', tier: 4 },
+            { name: 'RTX 2080 Ti', basePrice: 35000, brand: 'nvidia', family: 'RTX 2080', gen: 'RTX 20', tier: 5 },
+            { name: 'RTX 3050', basePrice: 17000, brand: 'nvidia', family: 'RTX 3050', gen: 'RTX 30', tier: 2 },
+            { name: 'RTX 3060 8GB', basePrice: 21000, brand: 'nvidia', family: 'RTX 3060', gen: 'RTX 30', tier: 3 },
+            { name: 'RTX 3060 12GB', basePrice: 25000, brand: 'nvidia', family: 'RTX 3060', gen: 'RTX 30', tier: 3 },
+            { name: 'RTX 3060 Ti', basePrice: 27000, brand: 'nvidia', family: 'RTX 3060', gen: 'RTX 30', tier: 4 },
+            { name: 'RTX 3070', basePrice: 34000, brand: 'nvidia', family: 'RTX 3070', gen: 'RTX 30', tier: 4 },
+            { name: 'RTX 3070 Ti', basePrice: 38000, brand: 'nvidia', family: 'RTX 3070', gen: 'RTX 30', tier: 4 },
+            { name: 'RTX 3080', basePrice: 46000, brand: 'nvidia', family: 'RTX 3080', gen: 'RTX 30', tier: 5 },
+            { name: 'RTX 3080 Ti', basePrice: 55000, brand: 'nvidia', family: 'RTX 3080', gen: 'RTX 30', tier: 5 },
+            { name: 'RTX 3090', basePrice: 60000, brand: 'nvidia', family: 'RTX 3090', gen: 'RTX 30', tier: 6 },
+            { name: 'RTX 4060', basePrice: 28000, brand: 'nvidia', family: 'RTX 4060', gen: 'RTX 40', tier: 3 },
+            { name: 'RTX 4060 Ti', basePrice: 38000, brand: 'nvidia', family: 'RTX 4060', gen: 'RTX 40', tier: 4 },
+            { name: 'RTX 4070', basePrice: 48000, brand: 'nvidia', family: 'RTX 4070', gen: 'RTX 40', tier: 4 },
+            { name: 'RTX 4070 Ti', basePrice: 58000, brand: 'nvidia', family: 'RTX 4070', gen: 'RTX 40', tier: 5 },
+            { name: 'RTX 4070 Ti Super', basePrice: 65000, brand: 'nvidia', family: 'RTX 4070', gen: 'RTX 40', tier: 5 },
+            { name: 'RTX 4080', basePrice: 70000, brand: 'nvidia', family: 'RTX 4080', gen: 'RTX 40', tier: 6 },
+            { name: 'RTX 4080 Super', basePrice: 85000, brand: 'nvidia', family: 'RTX 4080', gen: 'RTX 40', tier: 6 },
+            { name: 'RTX 4090', basePrice: 110000, brand: 'nvidia', family: 'RTX 4090', gen: 'RTX 40', tier: 7 },
+            { name: 'RTX 5060', basePrice: 40000, brand: 'nvidia', family: 'RTX 5060', gen: 'RTX 50', tier: 3 },
+            { name: 'RTX 5060 Ti', basePrice: 48000, brand: 'nvidia', family: 'RTX 5060', gen: 'RTX 50', tier: 4 },
+            { name: 'RTX 5070', basePrice: 55000, brand: 'nvidia', family: 'RTX 5070', gen: 'RTX 50', tier: 4 },
+            { name: 'RTX 5070 Ti', basePrice: 68000, brand: 'nvidia', family: 'RTX 5070', gen: 'RTX 50', tier: 5 },
+            { name: 'RTX 5080', basePrice: 80000, brand: 'nvidia', family: 'RTX 5080', gen: 'RTX 50', tier: 6 },
+            { name: 'RTX 5090', basePrice: 140000, brand: 'nvidia', family: 'RTX 5090', gen: 'RTX 50', tier: 7 },
+            { name: 'Radeon RX 5500 XT', basePrice: 9000, brand: 'amd', family: 'RX 5500', gen: 'RX 5000', tier: 1 },
+            { name: 'Radeon RX 5600 XT', basePrice: 12000, brand: 'amd', family: 'RX 5600', gen: 'RX 5000', tier: 2 },
+            { name: 'Radeon RX 5700', basePrice: 14000, brand: 'amd', family: 'RX 5700', gen: 'RX 5000', tier: 3 },
+            { name: 'Radeon RX 5700 XT', basePrice: 16000, brand: 'amd', family: 'RX 5700', gen: 'RX 5000', tier: 3 },
+            { name: 'Radeon RX 6400', basePrice: 10000, brand: 'amd', family: 'RX 6400', gen: 'RX 6000', tier: 1 },
+            { name: 'Radeon RX 6500 XT', basePrice: 12000, brand: 'amd', family: 'RX 6500', gen: 'RX 6000', tier: 1 },
+            { name: 'Radeon RX 6600', basePrice: 18000, brand: 'amd', family: 'RX 6600', gen: 'RX 6000', tier: 2 },
+            { name: 'Radeon RX 6600 XT', basePrice: 21000, brand: 'amd', family: 'RX 6600', gen: 'RX 6000', tier: 2 },
+            { name: 'Radeon RX 6650 XT', basePrice: 23000, brand: 'amd', family: 'RX 6650', gen: 'RX 6000', tier: 2 },
+            { name: 'Radeon RX 6700 XT', basePrice: 27000, brand: 'amd', family: 'RX 6700', gen: 'RX 6000', tier: 3 },
+            { name: 'Radeon RX 6750 XT', basePrice: 30000, brand: 'amd', family: 'RX 6750', gen: 'RX 6000', tier: 3 },
+            { name: 'Radeon RX 6800', basePrice: 38000, brand: 'amd', family: 'RX 6800', gen: 'RX 6000', tier: 4 },
+            { name: 'Radeon RX 6800 XT', basePrice: 42000, brand: 'amd', family: 'RX 6800', gen: 'RX 6000', tier: 5 },
+            { name: 'Radeon RX 6900 XT', basePrice: 52000, brand: 'amd', family: 'RX 6900', gen: 'RX 6000', tier: 6 },
+            { name: 'Radeon RX 7600', basePrice: 26000, brand: 'amd', family: 'RX 7600', gen: 'RX 7000', tier: 2 },
+            { name: 'Radeon RX 7600 XT', basePrice: 30000, brand: 'amd', family: 'RX 7600', gen: 'RX 7000', tier: 2 },
+            { name: 'Radeon RX 7700 XT', basePrice: 38000, brand: 'amd', family: 'RX 7700', gen: 'RX 7000', tier: 3 },
+            { name: 'Radeon RX 7800 XT', basePrice: 50000, brand: 'amd', family: 'RX 7800', gen: 'RX 7000', tier: 4 },
+            { name: 'Radeon RX 7900 XT', basePrice: 62000, brand: 'amd', family: 'RX 7900', gen: 'RX 7000', tier: 5 },
+            { name: 'Radeon RX 7900 XTX', basePrice: 75000, brand: 'amd', family: 'RX 7900', gen: 'RX 7000', tier: 6 },
+            { name: 'Radeon RX 9070', basePrice: 55000, brand: 'amd', family: 'RX 9070', gen: 'RX 9000', tier: 5 },
+            { name: 'Radeon RX 9070 XT', basePrice: 65000, brand: 'amd', family: 'RX 9070', gen: 'RX 9000', tier: 6 }
+        ],
+        ram: [
+            { name: 'DDR3 8GB 1600MHz', basePrice: 800, brand: 'ddr3', family: 'DDR3', size: 8, freq: 1600, tier: 1 },
+            { name: 'DDR3 16GB 1600MHz', basePrice: 1500, brand: 'ddr3', family: 'DDR3', size: 16, freq: 1600, tier: 2 },
+            { name: 'DDR4 4GB 2400MHz', basePrice: 800, brand: 'ddr4', family: 'DDR4', size: 4, freq: 2400, tier: 1 },
+            { name: 'DDR4 8GB 2666MHz', basePrice: 1500, brand: 'ddr4', family: 'DDR4', size: 8, freq: 2666, tier: 2 },
+            { name: 'DDR4 16GB 3200MHz', basePrice: 3200, brand: 'ddr4', family: 'DDR4', size: 16, freq: 3200, tier: 3 },
+            { name: 'DDR4 32GB 3600MHz', basePrice: 6500, brand: 'ddr4', family: 'DDR4', size: 32, freq: 3600, tier: 4 },
+            { name: 'DDR4 64GB 3600MHz', basePrice: 12500, brand: 'ddr4', family: 'DDR4', size: 64, freq: 3600, tier: 5 },
+            { name: 'DDR5 8GB 4800MHz', basePrice: 3000, brand: 'ddr5', family: 'DDR5', size: 8, freq: 4800, tier: 2 },
+            { name: 'DDR5 16GB 4800MHz', basePrice: 5500, brand: 'ddr5', family: 'DDR5', size: 16, freq: 4800, tier: 3 },
+            { name: 'DDR5 16GB 6000MHz', basePrice: 6500, brand: 'ddr5', family: 'DDR5', size: 16, freq: 6000, tier: 3 },
+            { name: 'DDR5 32GB 5600MHz', basePrice: 11000, brand: 'ddr5', family: 'DDR5', size: 32, freq: 5600, tier: 4 },
+            { name: 'DDR5 32GB 6000MHz', basePrice: 12500, brand: 'ddr5', family: 'DDR5', size: 32, freq: 6000, tier: 4 },
+            { name: 'DDR5 64GB 5600MHz', basePrice: 21000, brand: 'ddr5', family: 'DDR5', size: 64, freq: 5600, tier: 5 },
+            { name: 'DDR5 64GB 6000MHz', basePrice: 24000, brand: 'ddr5', family: 'DDR5', size: 64, freq: 6000, tier: 5 }
+        ]
+    };
+
+    const NAMES_POOL = ['Артем', 'Влад', 'Дмитрий', 'Иван', 'Максим', 'Сергей', 'Анна', 'Егор', 'Никита', 'Ольга'];
+    const DAY_DURATION_MS = 20 * 60 * 1000;
+    const CLOCK_TICK_MS = 1000;
+    let dayTimer = null;
+    let clockTimer = null;
+    const PREPAY_PERCENT = 0.30;
+    let gameStarted = false;
+    let saveDebounce = null;
+    let lastLoaded = false;
+    let tgReady = false;
+
+    function buildCpuWishList() {
+        let pairs = []; let seen = new Set();
+        COMPONENT_POOL.cpu.forEach(c => {
+            let key = c.family + '|' + c.gen;
+            if (!seen.has(key)) { seen.add(key); pairs.push({ family: c.family, gen: c.gen }); }
+        });
+        return pairs.map(p => ({
+            type: 'cpu',
+            describe: `${p.family} ${p.gen}`,
+            matchItem: (item) => item.family === p.family && item.gen === p.gen,
+            minPrice: () => Math.min(...COMPONENT_POOL.cpu.filter(c => c.family === p.family && c.gen === p.gen).map(i => i.basePrice))
+        }));
+    }
+    function buildGpuWishList() {
+        let wishes = []; let families = {};
+        COMPONENT_POOL.gpu.forEach(g => {
+            let key = g.brand + '|' + g.gen + '|' + g.family;
+            if (!families[key]) families[key] = { brand: g.brand, gen: g.gen, family: g.family, items: [] };
+            families[key].items.push(g);
+        });
+        Object.values(families).forEach(f => {
+            wishes.push({
+                type: 'gpu',
+                describe: `видеокарта ${f.family}`,
+                matchItem: (item) => item.family === f.family && item.gen === f.gen,
+                minPrice: () => Math.min(...f.items.map(i => i.basePrice))
+            });
+        });
+        let gens = {};
+        COMPONENT_POOL.gpu.forEach(g => {
+            let key = g.brand + '|' + g.gen;
+            if (!gens[key]) gens[key] = { brand: g.brand, gen: g.gen, items: [] };
+            gens[key].items.push(g);
+        });
+        Object.values(gens).forEach(g => {
+            let brandLabel = g.brand === 'nvidia' ? 'NVIDIA' : 'AMD Radeon';
+            wishes.push({
+                type: 'gpu',
+                describe: `видеокарта ${brandLabel} ${g.gen}`,
+                matchItem: (item) => item.gen === g.gen && item.brand === g.brand,
+                minPrice: () => Math.min(...g.items.map(i => i.basePrice))
+            });
+        });
+        return wishes;
+    }
+    function buildRamWishList() {
+        let variants = {};
+        COMPONENT_POOL.ram.forEach(r => {
+            let key = r.brand + '|' + r.size;
+            if (!variants[key]) variants[key] = { brand: r.brand, size: r.size, items: [] };
+            variants[key].items.push(r);
+        });
+        return Object.values(variants).map(v => {
+            let brandLabel = v.brand.toUpperCase();
+            return {
+                type: 'ram',
+                describe: `память ${brandLabel} ${v.size} ГБ`,
+                matchItem: (item) => item.brand === v.brand && item.size === v.size,
+                minPrice: () => Math.min(...v.items.map(i => i.basePrice))
+            };
+        });
+    }
+
+    const CPU_WISHES = buildCpuWishList();
+    const GPU_WISHES = buildGpuWishList();
+    const RAM_WISHES = buildRamWishList();
+    function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    // ==== TELEGRAM INIT ====
+    function initTelegram() {
+        if (window.Telegram && window.Telegram.WebApp) {
+            try {
+                Telegram.WebApp.ready();
+                Telegram.WebApp.expand();
+                tgReady = true;
+                console.log('[TG] WebApp ready, CloudStorage:', !!Telegram.WebApp.CloudStorage);
+            } catch (e) {
+                console.warn('[TG] init error', e);
+            }
+        } else {
+            console.log('[TG] Not in Telegram, using localStorage');
+        }
+    }
+
+    // ==== SAVE / LOAD ====
+    function buildSavePayload() {
+        return {
+            balance: state.balance,
+            reputation: state.reputation,
+            day: state.day,
+            currentLocationIdx: state.currentLocationIdx,
+            warehouse: state.warehouse,
+            deliveries: state.deliveries,
+            builtPCs: state.builtPCs,
+            dialogs: state.dialogs,
+            marketOffers: state.marketOffers,
+            idCounter: state.idCounter,
+            currentMarket: state.currentMarket,
+            currentType: state.currentType,
+            currentSub: state.currentSub,
+            searchQuery: state.searchQuery
+        };
+    }
+    function saveToLocal(data) {
+        try {
+            localStorage.setItem(SAVE_KEY, data);
+            return true;
+        } catch (e) {
+            console.warn('[SAVE] localStorage error', e);
+            return false;
+        }
+    }
+    function saveToCloud(data, onDone) {
+        if (tgReady && Telegram.WebApp.CloudStorage) {
+            try {
+                Telegram.WebApp.CloudStorage.setItem(SAVE_KEY, data, (err) => {
+                    if (err) { console.warn('[SAVE] CloudStorage error', err); onDone(false); }
+                    else { console.log('[SAVE] CloudStorage OK'); onDone(true); }
+                });
+            } catch (e) {
+                console.warn('[SAVE] CloudStorage exception', e);
+                onDone(false);
+            }
+        } else {
+            onDone(false);
+        }
+    }
+    function saveGame(reason) {
+        if (!gameStarted) return;
+        let data = JSON.stringify(buildSavePayload());
+        console.log('[SAVE] reason:', reason || 'auto', 'size:', data.length);
+        let localOk = saveToLocal(data);
+        saveToCloud(data, (cloudOk) => {
+            if (cloudOk || localOk) showSaveIndicator(false);
+            else showSaveIndicator(true);
+        });
+        if (!tgReady && localOk) showSaveIndicator(false);
+    }
+    function scheduleSave(reason) {
+        if (saveDebounce) clearTimeout(saveDebounce);
+        saveDebounce = setTimeout(() => saveGame(reason || 'debounced'), 500);
+    }
+    function showSaveIndicator(isError) {
+        let el = document.getElementById('save-indicator');
+        if (!el) return;
+        el.classList.toggle('error', !!isError);
+        el.innerText = isError ? '⚠ Не сохранено' : '💾 Сохранено';
+        el.classList.add('show');
+        clearTimeout(el._hideTimer);
+        el._hideTimer = setTimeout(() => el.classList.remove('show'), 1500);
+    }
+    function manualSave() {
+        saveGame('manual');
+        alert('Сохранение выполнено. Проверьте консоль для деталей.');
+    }
+
+    // === Санитизация загруженного состояния: не допускаем отрицательных дней ===
+    function sanitizeLoadedState() {
+        // Доставки: минимум 1 день, если не приехали
+        if (Array.isArray(state.deliveries)) {
+            state.deliveries.forEach(d => {
+                if (typeof d.daysLeft !== 'number' || isNaN(d.daysLeft) || d.daysLeft < 1) {
+                    d.daysLeft = 1;
+                }
+            });
+        }
+        // Диалоги: отрицательные дни чиним, просроченные активные заказы закрываем
+        if (Array.isArray(state.dialogs)) {
+            state.dialogs.forEach(d => {
+                if (typeof d.daysLeft !== 'number' || isNaN(d.daysLeft)) d.daysLeft = 0;
+                if (d.daysLeft < 0) d.daysLeft = 0;
+                if ((d.stage === 'waiting' || d.stage === 'deal') && d.daysLeft === 0) {
+                    d.stage = 'failed';
+                    if (Array.isArray(d.chatHistory)) {
+                        d.chatHistory.push({ side: 'buyer', text: 'Срок ожидания истёк. Заказ отменён.' });
+                    }
+                }
+            });
+        }
+        // На всякий случай: гарантируем массивы
+        state.warehouse = Array.isArray(state.warehouse) ? state.warehouse : [];
+        state.builtPCs = Array.isArray(state.builtPCs) ? state.builtPCs : [];
+        state.marketOffers = Array.isArray(state.marketOffers) ? state.marketOffers : [];
+        state.dialogs = Array.isArray(state.dialogs) ? state.dialogs : [];
+        state.deliveries = Array.isArray(state.deliveries) ? state.deliveries : [];
+    }
+
+    function loadGame(callback) {
+        function apply(raw, source) {
+            if (!raw) { console.log('[LOAD] no save in', source); lastLoaded = false; callback(); return; }
+            try {
+                let parsed = JSON.parse(raw);
+                Object.assign(state, parsed);
+                state.dayElapsedMs = 0;
+                state.speed = state.speed || 1;
+                let maxId = 1;
+                let scan = (arr) => { if (Array.isArray(arr)) arr.forEach(o => { if (o.id && o.id >= maxId) maxId = o.id + 1; }); };
+                scan(state.warehouse); scan(state.deliveries); scan(state.builtPCs);
+                scan(state.dialogs); scan(state.marketOffers);
+                state.idCounter = Math.max(state.idCounter || 1, maxId);
+                sanitizeLoadedState();
+                lastLoaded = true;
+                console.log('[LOAD] OK from', source, 'dialogs:', state.dialogs.length, 'offers:', state.marketOffers.length);
+            } catch (e) {
+                console.warn('[LOAD] parse error', e);
+                lastLoaded = false;
+            }
+            callback();
+        }
+        if (tgReady && Telegram.WebApp.CloudStorage) {
+            try {
+                Telegram.WebApp.CloudStorage.getItem(SAVE_KEY, (err, value) => {
+                    if (err || !value) {
+                        console.log('[LOAD] cloud empty, trying localStorage');
+                        apply(localStorage.getItem(SAVE_KEY), 'localStorage');
+                    } else {
+                        apply(value, 'cloud');
+                    }
+                });
+                return;
+            } catch (e) {
+                console.warn('[LOAD] cloud exception, fallback', e);
+            }
+        }
+        apply(localStorage.getItem(SAVE_KEY), 'localStorage');
+    }
+    function resetGame() {
+        if (!confirm('Удалить сохранение и начать заново?')) return;
+        try {
+            if (tgReady && Telegram.WebApp.CloudStorage) {
+                Telegram.WebApp.CloudStorage.removeItem(SAVE_KEY, () => {});
+            }
+        } catch(e) {}
+        try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+        state = {
+            balance: 15000, reputation: 10, day: 1, dayElapsedMs: 0, speed: 1,
+            currentLocationIdx: 0, currentMarket: 'avito', currentType: 'all', currentSub: 'all',
+            searchQuery: '', warehouse: [], deliveries: [], builtPCs: [], dialogs: [], marketOffers: [], idCounter: 1
+        };
+        gameStarted = false;
+        lastLoaded = false;
+        document.getElementById('rules-overlay').classList.remove('hidden');
+        updateUI();
+    }
+
+    function closeRules() {
+        document.getElementById('rules-overlay').classList.add('hidden');
+        if (!gameStarted) {
+            gameStarted = true;
+            init();
+        }
+    }
+
+    function init() {
+        loadGame(() => {
+            if (!lastLoaded) {
+                console.log('[INIT] new game - generating market and orders');
+                generateMarketOffers();
+                let tries = 0;
+                let made = 0;
+                while (made < 3 && tries < 20) {
+                    let before = state.dialogs.length;
+                    generateRandomOrder();
+                    if (state.dialogs.length > before) made++;
+                    tries++;
+                }
+                console.log('[INIT] orders generated:', state.dialogs.length);
+            }
+            renderSubTabs();
+            updateUI();
+            startGameLoop();
+            startClock();
+            saveGame('init');
+        });
+    }
+
+    function startGameLoop() {
+        if (dayTimer) clearTimeout(dayTimer);
+        if (state.speed === 0) return;
+        let delay = DAY_DURATION_MS / state.speed;
+        dayTimer = setTimeout(() => { advanceDay(); startGameLoop(); }, delay);
+    }
+
+    // === ИСПРАВЛЕННАЯ advanceDay ===
+    function advanceDay() {
+        state.day++;
+        state.dayElapsedMs = 0;
+
+        // --- Доставки: не уходим в минус, прибывшие переносим на склад ---
+        state.deliveries.forEach(del => {
+            del.daysLeft = Math.max(0, (del.daysLeft || 0) - 1);
+        });
+        let arrived = state.deliveries.filter(del => del.daysLeft <= 0);
+        arrived.forEach(del => {
+            state.warehouse.push({
+                id: state.idCounter++, type: del.type, name: del.name,
+                status: del.source === 'avito' ? 'unchecked' : 'checked',
+                statusQuality: del.statusQuality, buyPrice: del.buyPrice, source: del.source
+            });
+        });
+        state.deliveries = state.deliveries.filter(del => del.daysLeft > 0);
+
+        // --- Диалоги: аккуратно уменьшаем дни, обрабатываем просрочку ---
+        state.dialogs.forEach(dial => {
+            if (typeof dial.daysLeft !== 'number' || isNaN(dial.daysLeft)) dial.daysLeft = 0;
+
+            if (dial.stage === 'waiting' || dial.stage === 'deal') {
+                dial.daysLeft = Math.max(0, dial.daysLeft - 1);
+
+                if (dial.daysLeft === 0) {
+                    if (dial.stage === 'waiting') {
+                        dial.stage = 'failed';
+                        dial.chatHistory.push({ side: 'buyer', text: 'Я устал ждать доставку ваших деталей. Отменяю заказ!' });
+                    } else if (dial.stage === 'deal') {
+                        dial.stage = 'failed';
+                        dial.chatHistory.push({ side: 'buyer', text: 'Я передумал, нашёл другого мастера. Пока.' });
+                    }
+                }
+            }
+
+            // На всякий случай не позволяем отрицательным значениям утечь
+            if (dial.daysLeft < 0) dial.daysLeft = 0;
+        });
+
+        if (Math.random() < 0.3) generateMarketOffers();
+        if (state.dialogs.filter(d => d.stage !== 'done' && d.stage !== 'failed').length < 6) {
+            if (Math.random() < 0.55) generateRandomOrder();
+        }
+        updateUI();
+        saveGame('advanceDay');
+    }
+
+    // === ИСПРАВЛЕННЫЙ skipDay ===
+    function skipDay() {
+        if (dayTimer) clearTimeout(dayTimer);
+        state.dayElapsedMs = 0;
+        advanceDay();
+        startGameLoop();
+    }
+
+    function startClock() {
+        if (clockTimer) clearInterval(clockTimer);
+        clockTimer = setInterval(() => {
+            if (state.speed === 0) return;
+            state.dayElapsedMs += CLOCK_TICK_MS * state.speed;
+            if (state.dayElapsedMs > DAY_DURATION_MS) state.dayElapsedMs = DAY_DURATION_MS;
+            updateClockUI();
+        }, CLOCK_TICK_MS);
+    }
+    function updateClockUI() {
+        let dayFraction = state.dayElapsedMs / DAY_DURATION_MS;
+        let totalMinutes = Math.floor(dayFraction * 24 * 60);
+        let hh = Math.floor(totalMinutes / 60) % 24;
+        let mm = totalMinutes % 60;
+        let clockText = document.getElementById('clock-text');
+        if (clockText) clockText.innerText = `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')} · ${state.day}`;
+        let fill = document.getElementById('day-progress-fill');
+        if (fill) fill.style.width = (dayFraction * 100).toFixed(1) + '%';
+    }
+    function setTimeSpeed(s) {
+        state.speed = s;
+        document.querySelectorAll('.time-controls .time-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`tbtn-${s}`).classList.add('active');
+        startGameLoop();
+        scheduleSave('speed');
+    }
+    function switchScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById(`screen-${screenId}`).classList.add('active');
+        document.getElementById(`nav-${screenId}`).classList.add('active');
+        updateUI();
+    }
+    function switchMarket(m, ev) {
+        state.currentMarket = m;
+        document.querySelectorAll('.market-tab').forEach(t => t.classList.remove('active'));
+        if (ev && ev.target) ev.target.classList.add('active');
+        updateUI();
+    }
+    function switchType(t, ev) {
+        state.currentType = t; state.currentSub = 'all';
+        document.querySelectorAll('.type-tab').forEach(tab => tab.classList.remove('active'));
+        if (ev && ev.target) ev.target.classList.add('active');
+        renderSubTabs(); updateUI();
+    }
+    function switchSub(s, ev) {
+        state.currentSub = s;
+        document.querySelectorAll('.sub-tab').forEach(tab => tab.classList.remove('active'));
+        if (ev && ev.target) ev.target.classList.add('active');
+        updateUI();
+    }
+    function renderSubTabs() {
+        let container = document.getElementById('sub-tabs');
+        container.innerHTML = '';
+        let subs = [];
+        if (state.currentType === 'all') subs = [{ id: 'all', label: 'Все' }];
+        else if (state.currentType === 'cpu') subs = [{ id: 'all', label: 'Все' }, { id: 'intel', label: 'Intel' }, { id: 'amd', label: 'AMD' }];
+        else if (state.currentType === 'gpu') subs = [{ id: 'all', label: 'Все' }, { id: 'nvidia', label: 'NVIDIA' }, { id: 'amd', label: 'AMD Radeon' }];
+        else if (state.currentType === 'ram') subs = [{ id: 'all', label: 'Все' }, { id: 'ddr3', label: 'DDR3' }, { id: 'ddr4', label: 'DDR4' }, { id: 'ddr5', label: 'DDR5' }];
+        let found = subs.some(s => s.id === state.currentSub);
+        if (!found) state.currentSub = 'all';
+        subs.forEach(s => {
+            let btn = document.createElement('button');
+            btn.className = 'sub-tab' + (s.id === state.currentSub ? ' active' : '');
+            btn.innerText = s.label;
+            btn.onclick = (e) => switchSub(s.id, e);
+            container.appendChild(btn);
+        });
+    }
+    function triggerSearch() {
+        state.searchQuery = document.getElementById('market-search').value.toLowerCase().trim();
+        updateUI();
+    }
+
+    function generateMarketOffers() {
+        state.marketOffers = [];
+        let loc = LOCATIONS[state.currentLocationIdx];
+        for (let i = 0; i < loc.avitoCount; i++) {
+            let types = ['cpu', 'gpu', 'ram'];
+            let rType = types[Math.floor(Math.random() * 3)];
+            let pool = COMPONENT_POOL[rType];
+            let itemData = pool[Math.floor(Math.random() * pool.length)];
+            let discount = 0.60 + Math.random() * 0.25;
+            let price = Math.round(itemData.basePrice * discount);
+            let isBroken = Math.random() < 0.25;
+            state.marketOffers.push({
+                id: state.idCounter++, market: 'avito', type: rType, name: itemData.name, brand: itemData.brand,
+                price: price, origPrice: price, eta: 0, statusQuality: isBroken ? 'broken' : 'ok', bargainAttempts: 0
+            });
+        }
+        let stores = ['ali', 'ozon', 'ym', 'wb'];
+        stores.forEach(st => {
+            ['cpu', 'gpu', 'ram'].forEach(type => {
+                COMPONENT_POOL[type].forEach(comp => {
+                    let priceModifier = 1.0, baseEta = 3, defectChance = 0.05;
+                    if (st === 'ali') { priceModifier = 0.85; baseEta = 6; defectChance = 0.15; }
+                    else if (st === 'ozon') { priceModifier = 1.0; baseEta = 3; defectChance = 0.04; }
+                    else if (st === 'ym') { priceModifier = 1.1; baseEta = 1; defectChance = 0.02; }
+                    else if (st === 'wb') { priceModifier = 0.95; baseEta = 4; defectChance = 0.08; }
+                    let finalPrice = Math.round(comp.basePrice * priceModifier);
+                    let finalEta = Math.max(1, Math.round(baseEta * loc.deliveryMul));
+                    let isBroken = Math.random() < defectChance;
+                    state.marketOffers.push({
+                        id: state.idCounter++, market: st, type: type, name: comp.name, brand: comp.brand,
+                        price: finalPrice, origPrice: finalPrice, eta: finalEta,
+                        statusQuality: isBroken ? 'broken' : 'ok', bargainAttempts: -1
+                    });
+                });
+            });
+        });
+    }
+
+    function tryBuildOrder() {
+        for (let attempt = 0; attempt < 30; attempt++) {
+            let cpuWish = pickRandom(CPU_WISHES);
+            let gpuWish = pickRandom(GPU_WISHES);
+            let ramWish = pickRandom(RAM_WISHES);
+            let minCost = cpuWish.minPrice() + gpuWish.minPrice() + ramWish.minPrice();
+            let approxBudget = Math.round(minCost * (0.90 + Math.random() * 0.15));
+            let prepay = Math.round(approxBudget * PREPAY_PERCENT);
+            if ((state.balance + prepay) >= minCost) {
+                return { cpuWish, gpuWish, ramWish, minCost, budget: approxBudget, prepay };
+            }
+        }
+        return null;
+    }
+    function generateRandomOrder() {
+        let built = tryBuildOrder();
+        if (!built) {
+            console.log('[ORDER] tryBuildOrder failed (not enough money)');
+            return;
+        }
+        let { cpuWish, gpuWish, ramWish, minCost, budget, prepay } = built;
+        let name = pickRandom(NAMES_POOL);
+        // Гарантируем минимум 3 дня терпения
+        let patience = Math.max(3, 5 + Math.floor(Math.random() * 5));
+        state.dialogs.push({
+            id: state.idCounter++, type: 'order', name: name,
+            cpuWish, gpuWish, ramWish,
+            budget, prepay, prepayPaid: false, minCost,
+            daysMax: patience, daysLeft: patience,
+            stage: 'deal', delayDecision: null, budgetNegotiation: null, etaChecked: false,
+            chatHistory: [
+                { side: 'buyer', text: `Привет! Нужен ПК. Хочу ${cpuWish.describe}, ${gpuWish.describe}, ${ramWish.describe}. Бюджет: ${budget} ₽. Готов внести предоплату ${prepay} ₽ (30%). Поможешь?` }
+            ],
+            assignedPcId: null
+        });
+        console.log('[ORDER] generated for', name, 'budget', budget, 'minCost', minCost);
+    }
+
+    function buyItem(offerId, method = 'direct') {
+        let offer = state.marketOffers.find(o => o.id === offerId);
+        if (!offer) return;
+        if (state.balance < offer.price) { alert("Недостаточно денег!"); return; }
+        state.balance -= offer.price;
+        let finalEta = offer.eta;
+        if (offer.market === 'avito' && method === 'avito_delivery') {
+            finalEta = Math.max(2, Math.round(3 * LOCATIONS[state.currentLocationIdx].deliveryMul));
+        }
+        if (finalEta > 0) {
+            state.deliveries.push({
+                id: state.idCounter++, type: offer.type, name: offer.name,
+                daysLeft: finalEta, statusQuality: offer.statusQuality, buyPrice: offer.price, source: offer.market
+            });
+        } else {
+            state.warehouse.push({
+                id: state.idCounter++, type: offer.type, name: offer.name,
+                status: 'unchecked', statusQuality: offer.statusQuality, buyPrice: offer.price, source: offer.market
+            });
+        }
+        state.marketOffers = state.marketOffers.filter(o => o.id !== offerId);
+        updateUI();
+        saveGame('buyItem');
+    }
+
+    function bargainItem(offerId) {
+        let offer = state.marketOffers.find(o => o.id === offerId);
+        if (!offer || offer.bargainAttempts < 0) return;
+        if (offer.bargainAttempts >= 2) {
+            alert("Вы уже дважды торговались по этому объявлению. Больше продавец не уступит.");
+            return;
+        }
+        offer.bargainAttempts++;
+        let roll = Math.random();
+        if (roll < 0.45) {
+            let reduction = 0.08 + Math.random() * 0.10;
+            offer.price = Math.round(offer.price * (1 - reduction));
+            alert(`✅ Продавец уступил! Новая цена: ${offer.price} ₽.`);
+        } else if (roll < 0.75) {
+            alert(`💬 Продавец: "Не, цена и так крайняя. Либо забирай за ${offer.price} ₽, либо не отвлекай."`);
+        } else {
+            let extra = Math.round(offer.price * 0.03);
+            let newPrice = offer.price + extra;
+            let agree = confirm(`😤 Продавец: "За такие копейки не отдам!"\n\nОн уже собирается снять объявление. Предложить ему чуть больше — ${newPrice} ₽ (+${extra} ₽)?`);
+            if (agree) {
+                offer.price = newPrice;
+                alert(`Продавец подумал и согласился за ${newPrice} ₽.`);
+            } else {
+                alert("Продавец снял объявление.");
+                state.marketOffers = state.marketOffers.filter(o => o.id !== offerId);
+            }
+        }
+        updateUI();
+        saveGame('bargain');
+    }
+
+    function testComponent(id) {
+        let comp = state.warehouse.find(w => w.id === id);
+        if (!comp) return;
+        comp.status = 'checked'; updateUI(); saveGame('test');
+    }
+    function returnComponent(id) {
+        let comp = state.warehouse.find(w => w.id === id);
+        if (!comp) return;
+        if (comp.source === 'avito') { alert("На Авито нельзя сделать возврат маркетплейса!"); return; }
+        state.balance += Math.round(comp.buyPrice * 0.9);
+        state.warehouse = state.warehouse.filter(w => w.id !== id);
+        alert("Товар отправлен по возврату (90% от стоимости).");
+        updateUI(); saveGame('return');
+    }
+    function scrapComponent(id) {
+        let comp = state.warehouse.find(w => w.id === id);
+        if (!comp) return;
+        let scrapPrice = Math.round(comp.buyPrice * 0.25);
+        state.balance += scrapPrice;
+        state.warehouse = state.warehouse.filter(w => w.id !== id);
+        alert(`Компонент продан как лом за ${scrapPrice} руб.`);
+        updateUI(); saveGame('scrap');
+    }
+    function assemblePC() {
+        let cpuId = document.getElementById('build-cpu').value;
+        let gpuId = document.getElementById('build-gpu').value;
+        let ramId = document.getElementById('build-ram').value;
+        if (!cpuId || !gpuId || !ramId) { alert("Выберите все 3 базовых компонента!"); return; }
+        let cpu = state.warehouse.find(w => w.id == cpuId);
+        let gpu = state.warehouse.find(w => w.id == gpuId);
+        let ram = state.warehouse.find(w => w.id == ramId);
+        if (!cpu || !gpu || !ram) { alert("Компоненты не найдены на складе!"); return; }
+        if (cpu.status === 'unchecked' || gpu.status === 'unchecked' || ram.status === 'unchecked') {
+            alert("Нельзя собирать ПК из непроверенных компонентов! Сначала протестируйте их."); return;
+        }
+        let cost = cpu.buyPrice + gpu.buyPrice + ram.buyPrice;
+        state.builtPCs.push({
+            id: state.idCounter++, cpu: cpu.name, gpu: gpu.name, ram: ram.name,
+            isFunctional: (cpu.statusQuality === 'ok' && gpu.statusQuality === 'ok' && ram.statusQuality === 'ok'),
+            cost: cost
+        });
+        state.warehouse = state.warehouse.filter(w => w.id != cpuId && w.id != gpuId && w.id != ramId);
+        alert("ПК успешно собран!");
+        updateUI(); saveGame('assemble');
+    }
+    function sellPcOnAvito(pcId) {
+        let pc = state.builtPCs.find(p => p.id === pcId);
+        if (!pc) return;
+        let targetPrice = Math.round(pc.cost * 1.45);
+        state.dialogs.push({
+            id: state.idCounter++, type: 'avito_sale', name: 'Покупатель Авито',
+            pcRef: pc, targetPrice: targetPrice, daysLeft: 10, stage: 'waiting_listing',
+            chatHistory: [{ side: 'player', text: `Выставил объявление: Сборка ПК (${pc.cpu} / ${pc.gpu}). Цена: ${targetPrice} руб.` }]
+        });
+        state.builtPCs = state.builtPCs.filter(p => p.id !== pcId);
+        alert("Объявление о продаже ПК размещено в Диалогах.");
+        updateUI(); saveGame('sellAvito');
+    }
+    function payPrepay(dial) {
+        if (dial.prepayPaid) return;
+        state.balance += dial.prepay;
+        dial.prepayPaid = true;
+        dial.chatHistory.push({ side: 'player', text: `Принял! Предоплата ${dial.prepay} ₽ получена. Остаток — ${dial.budget - dial.prepay} ₽ при сдаче.` });
+        dial.chatHistory.push({ side: 'buyer', text: `Перевёл ${dial.prepay} ₽. Остальное — при получении.` });
+    }
+    function acceptOrderImmediate(dialId) {
+        let dial = state.dialogs.find(d => d.id === dialId);
+        if (!dial) return;
+        dial.stage = 'waiting';
+        dial.chatHistory.push({ side: 'player', text: 'Принял в работу! Скоро всё соберу.' });
+        payPrepay(dial);
+        dial.chatHistory.push({ side: 'buyer', text: `Отлично. Жду! У тебя есть ${dial.daysLeft} дней.` });
+        updateUI(); saveGame('acceptOrder');
+    }
+    function negotiatePrice(dialId) {
+        let dial = state.dialogs.find(d => d.id === dialId);
+        if (!dial) return;
+        if (dial.stage === 'deal') {
+            dial.stage = 'confirm_expensive';
+            dial.chatHistory.push({ side: 'player', text: 'Слушай, по твоим хотелкам выходит дороже. Комплектующие нынче кусаются. Может, добавишь немного?' });
+            let agrees = Math.random() < 0.55;
+            dial.budgetNegotiation = agrees ? 'accepted' : 'refused';
+            if (agrees) {
+                let increase = 0.10 + Math.random() * 0.15;
+                let oldBudget = dial.budget;
+                dial.budget = Math.round(oldBudget * (1 + increase));
+                dial.prepay = Math.round(dial.budget * PREPAY_PERCENT);
+                dial.chatHistory.push({ side: 'buyer', text: `Ладно, уломал. Готов доплатить. Новый бюджет: ${dial.budget} ₽ (было ${oldBudget} ₽). Предоплата тогда ${dial.prepay} ₽.` });
+            } else {
+                dial.chatHistory.push({ side: 'buyer', text: `Нет, больше не дам — либо собирай за мой бюджет ${dial.budget} ₽, либо ищи другого клиента.` });
+            }
+        } else if (dial.stage === 'confirm_expensive' && dial.budgetNegotiation === 'refused') {
+            dial.chatHistory.push({ side: 'player', text: 'Ну хоть немного сверху? Ну пожалуйста!' });
+            let agrees = Math.random() < 0.30;
+            if (agrees) {
+                let increase = 0.05 + Math.random() * 0.10;
+                let oldBudget = dial.budget;
+                dial.budget = Math.round(oldBudget * (1 + increase));
+                dial.prepay = Math.round(dial.budget * PREPAY_PERCENT);
+                dial.budgetNegotiation = 'accepted';
+                dial.chatHistory.push({ side: 'buyer', text: `Ладно, так уж и быть. Новый бюджет: ${dial.budget} ₽ (было ${oldBudget} ₽). Предоплата ${dial.prepay} ₽.` });
+            } else {
+                dial.chatHistory.push({ side: 'buyer', text: 'Нет, я же сказал — больше не дам. За мой бюджет или до свидания.' });
+            }
+        }
+        updateUI(); saveGame('negotiate');
+    }
+    function acceptAfterExpensive(dialId) {
+        let dial = state.dialogs.find(d => d.id === dialId);
+        if (!dial) return;
+        dial.stage = 'waiting';
+        dial.chatHistory.push({ side: 'player', text: 'Отлично, тогда приступаю к работе!' });
+        payPrepay(dial);
+        dial.chatHistory.push({ side: 'buyer', text: `Жду! У тебя есть ${dial.daysLeft} дней.` });
+        updateUI(); saveGame('acceptAfterExp');
+    }
+    function acceptAtOriginalPrice(dialId) {
+        let dial = state.dialogs.find(d => d.id === dialId);
+        if (!dial) return;
+        dial.stage = 'waiting';
+        dial.chatHistory.push({ side: 'player', text: 'Ладно, договорились. Собираю за твою цену.' });
+        payPrepay(dial);
+        dial.chatHistory.push({ side: 'buyer', text: `Спасибо! Жду. У тебя есть ${dial.daysLeft} дней.` });
+        updateUI(); saveGame('acceptOrig');
+    }
+    function sayDelay(dialId) {
+        let dial = state.dialogs.find(d => d.id === dialId);
+        if (!dial) return;
+        dial.stage = 'confirm_delay';
+        dial.chatHistory.push({ side: 'player', text: 'Слушай, у меня запара с комплектующими. Смогу начать позже. Подождёшь?' });
+        let agrees = Math.random() < 0.5;
+        dial.delayDecision = agrees ? 'accepted' : 'refused';
+        if (agrees) dial.chatHistory.push({ side: 'buyer', text: 'Ладно, без проблем. Подожду, но не затягивай сильно.' });
+        else dial.chatHistory.push({ side: 'buyer', text: 'Слушай, я не могу столько ждать. Придётся искать другого мастера.' });
+        updateUI(); saveGame('sayDelay');
+    }
+    function declineOrder(dialId) { state.dialogs = state.dialogs.filter(d => d.id !== dialId); updateUI(); saveGame('decline'); }
+    function acceptAfterDelay(dialId) {
+        let dial = state.dialogs.find(d => d.id === dialId);
+        if (!dial) return;
+        dial.stage = 'waiting';
+        dial.chatHistory.push({ side: 'player', text: 'Спасибо, что вошёл в положение! Приступаю к работе.' });
+        payPrepay(dial);
+        dial.chatHistory.push({ side: 'buyer', text: `Хорошо, жду. У тебя есть ${dial.daysLeft} дней.` });
+        updateUI(); saveGame('acceptDelay');
+    }
+    function warnCustomerDelay(dialId) {
+        let dial = state.dialogs.find(d => d.id === dialId);
+        if (!dial) return;
+        let extension = 3;
+        dial.daysLeft += extension;
+        dial.chatHistory.push({ side: 'player', text: `Извините, задержка логистики. Потребуется еще ~${extension} дн.` });
+        if (Math.random() < 0.6) {
+            dial.chatHistory.push({ side: 'buyer', text: 'Ладно, подожду еще немного, но не затягивайте.' });
+            state.reputation = Math.max(0, state.reputation - 1);
+        } else {
+            dial.stage = 'failed';
+            dial.chatHistory.push({ side: 'buyer', text: 'Нет, это слишком долго. Я отменяю заказ.' });
+            state.reputation = Math.max(0, state.reputation - 3);
+        }
+        updateUI(); saveGame('warnDelay');
+    }
+    function checkDeliveryTime(dialId) {
+        let dial = state.dialogs.find(d => d.id === dialId);
+        if (!dial) return;
+        dial.etaChecked = true;
+        let maxDeliv = state.deliveries.length > 0 ? Math.max(...state.deliveries.map(d => d.daysLeft)) : 0;
+        let infoText = maxDeliv > 0 ? `Ближайшие поставки через ${maxDeliv} дн.` : 'Все детали уже на складе.';
+        dial.chatHistory.push({ side: 'player', text: `[Логистика]: ${infoText} Терпение клиента: ${dial.daysLeft} дн.` });
+        updateUI(); saveGame('checkDeliv');
+    }
+    function itemMatchesWish(type, name, wish) {
+        let item = COMPONENT_POOL[type].find(c => c.name === name);
+        if (!item) return false;
+        return wish.matchItem(item);
+    }
+    function pcMatchesOrder(pc, dial) {
+        return itemMatchesWish('cpu', pc.cpu, dial.cpuWish)
+            && itemMatchesWish('gpu', pc.gpu, dial.gpuWish)
+            && itemMatchesWish('ram', pc.ram, dial.ramWish);
+    }
+    function deliverOrder(dialId) {
+        let dial = state.dialogs.find(d => d.id === dialId);
+        if (!dial) return;
+        let pcIdx = state.builtPCs.findIndex(p => pcMatchesOrder(p, dial));
+        if (pcIdx === -1) { alert("У вас нет готового ПК, подходящего под запрос клиента!"); return; }
+        let pc = state.builtPCs[pcIdx];
+        if (!pc.isFunctional) {
+            dial.stage = 'failed';
+            dial.chatHistory.push({ side: 'buyer', text: 'Вы привезли мне нерабочий хлам! Компьютер даже не включается.' });
+            state.reputation = Math.max(0, state.reputation - 8);
+            state.builtPCs.splice(pcIdx, 1);
+            updateUI(); saveGame('deliverBroken'); return;
+        }
+        let remainder = dial.budget - (dial.prepayPaid ? dial.prepay : 0);
+        state.balance += remainder;
+        state.reputation += 4;
+        dial.stage = 'done';
+        dial.chatHistory.push({ side: 'player', text: `Ваш компьютер готов и протестирован. Передаю! Получен остаток ${remainder} ₽.` });
+        dial.chatHistory.push({ side: 'buyer', text: 'Всё работает отлично, спасибо!' });
+        state.builtPCs.splice(pcIdx, 1);
+        updateUI(); saveGame('deliver');
+    }
+    function processAvitoSale(dialId, action) {
+        let dial = state.dialogs.find(d => d.id === dialId);
+        if (!dial) return;
+        if (action === 'sell') {
+            state.balance += dial.targetPrice;
+            state.reputation += 1;
+            dial.stage = 'done';
+            dial.chatHistory.push({ side: 'buyer', text: 'Отличный комп, забираю!' });
+        } else if (action === 'cancel') {
+            state.builtPCs.push(dial.pcRef);
+            state.dialogs = state.dialogs.filter(d => d.id !== dialId);
+        }
+        updateUI(); saveGame('avitoSale');
+    }
+    function tryRelocate() {
+        let nextLoc = LOCATIONS[state.currentLocationIdx + 1];
+        if (!nextLoc) { alert("Вы уже в Москве!"); return; }
+        if (state.balance >= nextLoc.moveCost && state.reputation >= nextLoc.moveRep) {
+            state.balance -= nextLoc.moveCost;
+            state.currentLocationIdx++;
+            alert(`Переезд в ${LOCATIONS[state.currentLocationIdx].name} успешен!`);
+            generateMarketOffers(); updateUI(); saveGame('relocate');
+        } else { alert("Недостаточно условий для переезда!"); }
+    }
+
+    function updateUI() {
+        document.getElementById('stat-balance').innerText = state.balance.toLocaleString();
+        document.getElementById('stat-rep').innerText = state.reputation;
+        document.getElementById('stat-day').innerText = state.day;
+        document.getElementById('stat-location').innerText = `📍 ${LOCATIONS[state.currentLocationIdx].name}`;
+        let nextLoc = LOCATIONS[state.currentLocationIdx + 1];
+        let banner = document.getElementById('move-banner-container');
+        if (!nextLoc) {
+            banner.innerHTML = `<div style="font-weight:bold; color:#00ffcc;">👑 Вы достигли Москвы!</div><div>Вы лучший сборщик страны.</div>`;
+        } else {
+            document.getElementById('move-info').innerHTML = `Следующий город: <b>${nextLoc.name}</b><br>Требуется: ${nextLoc.moveCost.toLocaleString()} ₽ & ${nextLoc.moveRep} Реп`;
+        }
+        updateClockUI(); renderDialogs(); renderMarket(); renderWorkbench();
+        scheduleSave('updateUI');
+    }
+
+    function renderDialogs() {
+        let container = document.getElementById('dialogs-list');
+        container.innerHTML = '';
+        let activeDialogs = state.dialogs.filter(d => d.stage !== 'done' && d.stage !== 'failed');
+        if (activeDialogs.length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:#858687; padding-top:20px; font-size:12px;">Пока нет новых сообщений...</div>';
+            return;
+        }
+        activeDialogs.forEach(dial => {
+            let safeDaysLeft = Math.max(0, dial.daysLeft || 0);
+            let html = `<div class="chat-container">`;
+            html += `<div class="card-meta">💬 <b>${dial.name}</b> | ${dial.type === 'order' ? 'Индивидуальный заказ' : 'Продажа на Авито'}</div>`;
+            dial.chatHistory.forEach(h => {
+                let sideClass = h.side === 'buyer' ? 'chat-buyer' : 'chat-player';
+                html += `<div class="chat-bubble ${sideClass}">${h.text}</div>`;
+            });
+            if (dial.type === 'order' && dial.stage !== 'done' && dial.stage !== 'failed') {
+                html += `<div class="card" style="margin-top:6px; padding:6px; font-size:10px;">`;
+                html += `<div class="req-line">⚙️ ЦП: <b>${dial.cpuWish.describe}</b></div>`;
+                html += `<div class="req-line">🎮 ГПУ: <b>${dial.gpuWish.describe}</b></div>`;
+                html += `<div class="req-line">💾 ОЗУ: <b>${dial.ramWish.describe}</b></div>`;
+                html += `<div class="req-line">💰 Бюджет: <b>${dial.budget} ₽</b></div>`;
+                html += `<div class="req-line">💸 Предоплата: <b>${dial.prepay} ₽</b> ${dial.prepayPaid ? '✅ получена' : ''}</div>`;
+                html += `<div class="req-line">📦 Мин. себестоимость: <b>${dial.minCost} ₽</b></div>`;
+                let available = state.balance + (dial.prepayPaid ? 0 : dial.prepay);
+                if (available < dial.minCost) html += `<div class="req-line" style="color:#ff4545; font-weight:bold;">⚠️ Не хватает средств! Нужно минимум ${dial.minCost - available} ₽</div>`;
+                else html += `<div class="req-line" style="color:#00ffcc;">✅ Средств достаточно для закупки</div>`;
+                html += `<div class="req-line">⏳ Терпение: <b>${safeDaysLeft} дн.</b></div>`;
+                html += `</div>`;
+            }
+            html += `<div class="chat-actions">`;
+            if (dial.type === 'order') {
+                if (dial.stage === 'deal') {
+                    html += `<button class="btn btn-sm btn-success" onclick="acceptOrderImmediate(${dial.id})">✅ Принять (предоплата)</button>`;
+                    html += `<button class="btn btn-sm btn-warn" onclick="negotiatePrice(${dial.id})">💰 Торговаться</button>`;
+                    html += `<button class="btn btn-sm btn-warn" onclick="sayDelay(${dial.id})">⏰ Сказать о задержке</button>`;
+                    html += `<button class="btn btn-sm btn-danger" onclick="declineOrder(${dial.id})">❌ Отказать</button>`;
+                } else if (dial.stage === 'confirm_expensive') {
+                    if (dial.budgetNegotiation === 'accepted') {
+                        html += `<button class="btn btn-sm btn-success" onclick="acceptAfterExpensive(${dial.id})">✅ Принять (новая цена)</button>`;
+                        html += `<button class="btn btn-sm btn-danger" onclick="declineOrder(${dial.id})">❌ Отказать</button>`;
+                    } else {
+                        html += `<button class="btn btn-sm btn-success" onclick="acceptAtOriginalPrice(${dial.id})">✅ Принять за ${dial.budget} ₽</button>`;
+                        html += `<button class="btn btn-sm btn-warn" onclick="negotiatePrice(${dial.id})">💰 Попробовать ещё раз</button>`;
+                        html += `<button class="btn btn-sm btn-danger" onclick="declineOrder(${dial.id})">❌ Отказать</button>`;
+                    }
+                } else if (dial.stage === 'confirm_delay') {
+                    if (dial.delayDecision === 'accepted') {
+                        html += `<button class="btn btn-sm btn-success" onclick="acceptAfterDelay(${dial.id})">✅ Принять (предоплата)</button>`;
+                        html += `<button class="btn btn-sm btn-danger" onclick="declineOrder(${dial.id})">❌ Отказать</button>`;
+                    } else {
+                        html += `<button class="btn btn-sm btn-danger" onclick="declineOrder(${dial.id})">❌ Закрыть диалог</button>`;
+                    }
+                } else if (dial.stage === 'waiting') {
+                    html += `<button class="btn btn-sm" onclick="checkDeliveryTime(${dial.id})">⏰ Проверить доставку</button>`;
+                    html += `<button class="btn btn-sm" onclick="warnCustomerDelay(${dial.id})">⚠️ Предупредить о задержке</button>`;
+                    let match = state.builtPCs.some(p => pcMatchesOrder(p, dial));
+                    if (match) html += `<button class="btn btn-sm btn-success" onclick="deliverOrder(${dial.id})">📦 Сдать ПК (получить остаток)</button>`;
+                }
+            } else if (dial.type === 'avito_sale') {
+                html += `<button class="btn btn-sm btn-success" onclick="processAvitoSale(${dial.id}, 'sell')">🤝 Продать за ${dial.targetPrice} ₽</button>`;
+                html += `<button class="btn btn-sm btn-danger" onclick="processAvitoSale(${dial.id}, 'cancel')">Снять с продажи</button>`;
+            }
+            html += `</div></div>`;
+            container.innerHTML += html;
+        });
+    }
+
+    function renderMarket() {
+        let container = document.getElementById('market-items-list');
+        container.innerHTML = '';
+        let filtered = state.marketOffers.filter(o => o.market === state.currentMarket);
+        if (state.currentType !== 'all') filtered = filtered.filter(o => o.type === state.currentType);
+        if (state.currentType !== 'all' && state.currentSub !== 'all') filtered = filtered.filter(o => o.brand === state.currentSub);
+        if (state.searchQuery) filtered = filtered.filter(o => o.name.toLowerCase().includes(state.searchQuery));
+        if (filtered.length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:#858687; padding-top:20px;">Нет доступных объявлений по фильтру.</div>';
+            return;
+        }
+        filtered.sort((a, b) => a.price - b.price);
+        filtered.forEach(o => {
+            let isAvito = o.market === 'avito';
+            let cardClass = isAvito ? 'card premium' : 'card';
+            let typeIcon = o.type === 'cpu' ? '🧠' : o.type === 'gpu' ? '🎮' : '💾';
+            let typeName = o.type === 'cpu' ? 'ЦП' : o.type === 'gpu' ? 'ГПУ' : 'ОЗУ';
+            let brandBadge = '';
+            if (o.brand === 'intel') brandBadge = '<span class="badge blue">Intel</span>';
+            else if (o.brand === 'amd') brandBadge = '<span class="badge red">AMD</span>';
+            else if (o.brand === 'nvidia') brandBadge = '<span class="badge green">NVIDIA</span>';
+            else if (o.brand === 'ddr3') brandBadge = '<span class="badge orange">DDR3</span>';
+            else if (o.brand === 'ddr4') brandBadge = '<span class="badge blue">DDR4</span>';
+            else if (o.brand === 'ddr5') brandBadge = '<span class="badge purple">DDR5</span>';
+            let html = `<div class="${cardClass}">`;
+            html += `<div class="card-title"><span>${typeIcon} ${o.name}</span> <span style="color:#45f3ff;">${o.price} ₽</span></div>`;
+            let badgeHtml = isAvito
+                ? `<span class="badge orange">Б/У</span> <span class="badge green">${LOCATIONS[state.currentLocationIdx].name}</span>`
+                : `<span class="badge green">Новый</span> <span class="badge red">${o.eta} дн.</span>`;
+            html += `<div style="margin-bottom:6px;">${brandBadge} ${badgeHtml} <span class="badge">${typeName}</span></div>`;
+            if (isAvito) {
+                html += `<button class="btn btn-sm btn-success" onclick="buyItem(${o.id}, 'direct')">Самовывоз</button>`;
+                html += `<button class="btn btn-sm" onclick="buyItem(${o.id}, 'avito_delivery')">Доставка (+3 дн.)</button>`;
+                if (o.bargainAttempts < 2) {
+                    let btnLabel = o.bargainAttempts === 0 ? '💰 Торг' : '💰 Поторговаться ещё';
+                    html += `<button class="btn btn-sm" style="border-color:#ffaa00; color:#ffaa00;" onclick="bargainItem(${o.id})">${btnLabel}</button>`;
+                }
+            } else {
+                html += `<button class="btn btn-sm btn-success" onclick="buyItem(${o.id})">Заказать</button>`;
+            }
+            html += `</div>`;
+            container.innerHTML += html;
+        });
+    }
+
+    function renderWorkbench() {
+        let cpuSelect = document.getElementById('build-cpu');
+        let gpuSelect = document.getElementById('build-gpu');
+        let ramSelect = document.getElementById('build-ram');
+        let prevCpu = cpuSelect.value, prevGpu = gpuSelect.value, prevRam = ramSelect.value;
+        cpuSelect.innerHTML = '<option value="">-- Выбрать ЦП --</option>';
+        gpuSelect.innerHTML = '<option value="">-- Выбрать ГПУ --</option>';
+        ramSelect.innerHTML = '<option value="">-- Выбрать ОЗУ --</option>';
+        state.warehouse.forEach(w => {
+            let optStr = `<option value="${w.id}">${w.name} (${w.status === 'unchecked' ? 'НЕ ПРОВЕРЕН' : w.statusQuality})</option>`;
+            if (w.type === 'cpu') cpuSelect.innerHTML += optStr;
+            if (w.type === 'gpu') gpuSelect.innerHTML += optStr;
+            if (w.type === 'ram') ramSelect.innerHTML += optStr;
+        });
+        cpuSelect.value = prevCpu; gpuSelect.value = prevGpu; ramSelect.value = prevRam;
+
+        let whContainer = document.getElementById('warehouse-list');
+        whContainer.innerHTML = '';
+        if (state.warehouse.length === 0) whContainer.innerHTML = '<div style="color:#858687; font-size:11px;">Склад пуст.</div>';
+        state.warehouse.forEach(w => {
+            let div = document.createElement('div');
+            div.className = 'card';
+            let qualBadge = w.status === 'unchecked'
+                ? '<span class="badge orange">Требует проверки</span>'
+                : (w.statusQuality === 'ok' ? '<span class="badge green">Рабочая</span>' : '<span class="badge red">БРАК</span>');
+            div.innerHTML = `<div class="card-title"><span>${w.name}</span></div><div style="margin-bottom:4px;">Тип: ${w.type.toUpperCase()} | Закупка: ${w.buyPrice} ₽ | ${qualBadge}</div>`;
+            if (w.status === 'unchecked') div.innerHTML += `<button class="btn btn-sm btn-success" onclick="testComponent(${w.id})">🔧 Тестировать</button>`;
+            else if (w.statusQuality === 'broken') {
+                if (w.source !== 'avito') div.innerHTML += `<button class="btn btn-sm btn-danger" onclick="returnComponent(${w.id})">📦 Возврат средств</button>`;
+                else div.innerHTML += `<button class="btn btn-sm btn-danger" onclick="scrapComponent(${w.id})">🧱 Сдать как лом</button>`;
+            }
+            whContainer.appendChild(div);
+        });
+
+        let delContainer = document.getElementById('delivery-list');
+        delContainer.innerHTML = '';
+        if (state.deliveries.length === 0) delContainer.innerHTML = '<div style="color:#858687; font-size:11px;">Нет активных доставок.</div>';
+        state.deliveries.forEach(d => {
+            let div = document.createElement('div');
+            div.className = 'card pending';
+            let safeDays = Math.max(0, d.daysLeft || 0);
+            div.innerHTML = `<div class="card-title"><span>${d.name}</span> <span style="color:#ffaa00;">${safeDays} дн.</span></div><div style="font-size:11px; color:#858687;">Маршрут: ${d.source.toUpperCase()}</div>`;
+            delContainer.appendChild(div);
+        });
+
+        let pcsContainer = document.getElementById('built-pcs-list');
+        pcsContainer.innerHTML = '';
+        if (state.builtPCs.length === 0) pcsContainer.innerHTML = '<div style="color:#858687; font-size:11px;">Нет готовых системных блоков.</div>';
+        state.builtPCs.forEach(p => {
+            let div = document.createElement('div');
+            div.className = 'card premium';
+            div.innerHTML = `
+                <div class="card-title"><span>Кастомная Сборка ПК</span></div>
+                <div style="font-size:11px; margin-bottom:4px;">
+                    • Процессор: ${p.cpu}<br>
+                    • Видеокарта: ${p.gpu}<br>
+                    • Память: ${p.ram}<br>
+                    <span style="color:#66fcf1;">Себестоимость: ${p.cost} ₽</span>
+                </div>
+                <button class="btn btn-sm btn-success" onclick="sellPcOnAvito(${p.id})">🏪 Выложить на Авито</button>
+            `;
+            pcsContainer.appendChild(div);
+        });
+    }
+
+    // ==== LIFECYCLE ====
+    window.addEventListener('beforeunload', () => { if (gameStarted) saveGame('beforeunload'); });
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden' && gameStarted) saveGame('visibilityhidden');
+    });
+    if (window.Telegram && window.Telegram.WebApp) {
+        try {
+            Telegram.WebApp.onEvent('viewportChanged', () => {});
+            Telegram.WebApp.onEvent('themeChanged', () => {});
+        } catch(e) {}
+    }
+
+    window.onload = function() {
+        initTelegram();
+        document.getElementById('rules-overlay').classList.remove('hidden');
+    };
+</script>
+</body>
+</html>
